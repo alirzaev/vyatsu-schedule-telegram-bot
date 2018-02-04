@@ -5,27 +5,40 @@ if (ENV == 'development') {
 }
 
 const BASE_API = process.env.BASE_API;
-const TOKEN = process.env.TG_BOT_TOKEN;
-const REDIS_URL = process.env.REDIS_URL;
 
 const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
-const redis = require("redis").createClient(REDIS_URL);
+const redis = require("redis").createClient(process.env.REDIS_URL);
+const mongoose = require('mongoose');
 
-const bot = new TelegramBot(TOKEN, { polling: true });
+mongoose.connect(process.env.MONGO_URL);
+
+const Visit = mongoose.model('Visit', {
+  telegram_id: String,
+  date: { type: Date, default: Date.now }
+});
+
+const bot = new TelegramBot(process.env.TG_BOT_TOKEN, { polling: true });
+
+const HELP = 
+`Чат бот ВятГУ для просмотра расписания студентов. Альфа-бета-гамма версия. Могут быть баги.
+Команды (палка | означает ИЛИ):
+* з|звонки|r|rings - расписание звонков
+* н|неделя|w|week - номер текущей недели
+* г|группа|g|group <имя_группы> - бот запомнит в какой вы группе (можно вводить не полностью, предложит варианты)
+* р|расписание|s|schedule - расписание на текущий день (работает если бот знает группу)
+`;
 
 redis.on("error", function (err) {
   console.error("Error " + err);
 });
 
-bot.onText(/(help|помощь)/i, (msg, match) => {
-  bot.sendMessage(msg.chat.id, 
-`Я чат-бот для расписания студентов ВятГУ.
-Чтобы посмотреть расписание звонков введите: з или звонок.
-Для просмотра текущей недели: н или неделя.
-Чтобы просматривать расписание, необходимо указать группу, например: группа ивтб-3302
-Просмотр расписания: р или расписание`
-  );
+bot.onText(/\/start/, (msg, match) => {
+  bot.sendMessage(msg.chat.id, 'Чат бот ВятГУ для просмотра расписания студентов. Для справки введите help или помощь.');
+});
+
+bot.onText(/^(help|помощь)$/i, (msg, match) => {
+  bot.sendMessage(msg.chat.id, HELP);
 });
 
 bot.onText(/^(r|rings|з|звонки)$/i, (msg, match) => {
@@ -88,6 +101,8 @@ bot.onText(/^(s|schedule|р|расписание)$/i, (msg, match) => {
 });
 
 bot.on('message', (msg) => {
+  const visit = new Visit({ telegram_id: msg.from.id });
+  visit.save();
   console.log(`From: ${msg.from.username}; Message: ${msg.text}`);
 });
 
