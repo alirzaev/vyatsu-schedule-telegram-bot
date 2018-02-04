@@ -1,6 +1,9 @@
 const ENV = process.env.NODE_ENV || 'development';
 if (ENV == 'development') require('dotenv').config();
 
+const TOKEN = process.env.TG_BOT_TOKEN;
+const URL = process.env.URL;
+
 const sch = require('./schedule');
 const dateHelper = require('./helpers/date');
 
@@ -20,7 +23,12 @@ redis.on("error", function (err) {
 
 // Telegram bot
 const TelegramBot = require('node-telegram-bot-api');
-const bot = new TelegramBot(process.env.TG_BOT_TOKEN, { polling: true });
+const bot = new TelegramBot(TOKEN, { 
+  webHook: {
+    port: process.env.PORT || 5000
+  }
+});
+bot.setWebHook(`${URL}${TOKEN}`);
 
 const HELP =
 `Чат бот ВятГУ для просмотра расписания студентов. Альфа-бета-гамма версия. Могут быть баги.
