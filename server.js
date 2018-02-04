@@ -2,6 +2,7 @@ const ENV = process.env.NODE_ENV || 'development';
 if (ENV == 'development') require('dotenv').config();
 
 const sch = require('./schedule');
+const dateHelper = require('./helpers/date');
 
 // Logger
 const logger = require('log4js').getLogger();
@@ -93,12 +94,14 @@ bot.onText(/^\/?(s|schedule|р|расписание)$/i, (msg, match) => {
     if (groupId) {
       sch.schedule(groupId)
         .then(schedule => {
-          sch.rings().then(rings => {
+          sch.rings(true).then(rings => {
             answer = [];
             rings.forEach((v, i) => {
-              answer.push(`${v} => ${schedule.day[i]}`);
+              if (schedule.day[i]) {
+                answer.push(`${v} > ${schedule.day[i]}`);
+              }
             });
-            bot.sendMessage(msg.chat.id, `Расписание (${schedule.date.toLocaleDateString()}):\n${answer.join("\n")}`);
+            bot.sendMessage(msg.chat.id, `Расписание (${schedule.date.toLocaleDateString()}, ${dateHelper.dayName(schedule.date)}):\n${answer.join("\n")}`);
           });
         })
         .catch(err => {

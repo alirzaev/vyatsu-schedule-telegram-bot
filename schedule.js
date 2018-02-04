@@ -5,12 +5,17 @@ const BASE_API = process.env.BASE_API;
 const axios = require('axios');
 
 module.exports = {
-  rings: function() {
+  rings: function(onlyStart) {
+    onlyStart = onlyStart || false;
     return new Promise((resolve, reject) => {
       axios.get(`${BASE_API}/v2/calls`).then(res => {
         const rings = [];
         res.data.forEach((v, i) => {
-          rings.push(`${i + 1}) ${v.start}-${v.end}`);
+          if (onlyStart){
+            rings.push(`${i + 1}) ${v.start}`);
+          } else {
+            rings.push(`${i + 1}) ${v.start}-${v.end}`);
+          }
         });
         resolve(rings);
       }).catch(err => { reject(err); });
@@ -50,7 +55,13 @@ module.exports = {
           curWeekNumber = (curWeekNumber + 1) % 2;
         }
         const curWeek = res.data.weeks[curWeekNumber]
-        resolve({ day: curWeek[curDayNumber], date: date });
+        const cleaningCurDay = curWeek[curDayNumber].map((el) => {
+          let mapped = el.replace("\r", ' ')
+            .replace(/Чтение ?лекций/im, 'Лек.')
+            .replace(/Проведение ?лабораторных ?занятий/im, 'Лаб.');
+          return mapped.replace(/(.+-\d{4}-\d{2}-\d{2}, )/im, '');
+        });
+        resolve({ day: cleaningCurDay, date: date });
       }).catch(err => { reject(err); })
     });
   }
