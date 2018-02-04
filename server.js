@@ -1,48 +1,50 @@
 const ENV = process.env.NODE_ENV || 'development';
+if (ENV == 'development') require('dotenv').config();
 
-if (ENV == 'development') {
-  require('dotenv').config();
-}
+const sch = require('./schedule');
 
-const BASE_API = process.env.BASE_API;
+// Mongoose
+require('mongoose').connect(process.env.MONGO_URL);
+const Visit = require('./models/Visit');
 
-const TelegramBot = require('node-telegram-bot-api');
-const axios = require('axios');
-const redis = require("redis").createClient(process.env.REDIS_URL);
-const mongoose = require('mongoose');
-
-mongoose.connect(process.env.MONGO_URL);
-
-const Visit = mongoose.model('Visit', {
-  telegram_id: String,
-  date: { type: Date, default: Date.now }
+// Redis
+const redis = require('redis').createClient(process.env.REDIS_URL);
+redis.on("error", function (err) {
+  console.error("Error " + err);
 });
 
+// Telegram bot
+const TelegramBot = require('node-telegram-bot-api');
 const bot = new TelegramBot(process.env.TG_BOT_TOKEN, { polling: true });
 
-const HELP = 
+const HELP =
 `Чат бот ВятГУ для просмотра расписания студентов. Альфа-бета-гамма версия. Могут быть баги.
 Команды (палка "|" означает ИЛИ):
 * з|звонки|r|rings - расписание звонков
 * н|неделя|w|week - номер текущей недели
 * г|группа|g|group имя_группы - бот запомнит, в какой вы группе (можно вводить не полностью, предложит варианты)
 * р|расписание|s|schedule - расписание на текущий день (работает, если бот знает группу)
-Я пока молодой бот, меня батька создал лежа на диване сегодня с утра (4 февраля 2018), поэтому пишите ему в vk https://vk.com/volodyaglyxix`;
+Я пока молодой бот, меня батька создал лежа на диване сегодня с утра (4 февраля 2018), поэтому пишите ему https://vk.com/volodyaglyxix`;
 
-redis.on("error", function (err) {
-  console.error("Error " + err);
+bot.on('message', (msg) => {
+  const visit = new Visit({ telegram_id: msg.from.id });
+  visit.save();
+  console.log(`From: ${msg.from.id}:${msg.from.username}; Message: ${msg.text}`);
 });
 
+// Start bot
 bot.onText(/\/start/, (msg, match) => {
   bot.sendMessage(msg.chat.id, 'Чат бот ВятГУ для просмотра расписания студентов. Для справки введите help или помощь.');
 });
 
-bot.onText(/^(help|помощь)$/i, (msg, match) => {
+// Help
+bot.onText(/^\/?(help|помощь)$/i, (msg, match) => {
   bot.sendMessage(msg.chat.id, HELP);
 });
 
-bot.onText(/^(r|rings|з|звонки)$/i, (msg, match) => {
-  rings()
+// Rings
+bot.onText(/^\/?(r|rings|з|звонки)$/i, (msg, match) => {
+  sch.rings()
     .then(rings => {
       bot.sendMessage(msg.chat.id, `Звонки:\n${rings.join("\n")}`);
     })
@@ -52,12 +54,14 @@ bot.onText(/^(r|rings|з|звонки)$/i, (msg, match) => {
     });
 });
 
-bot.onText(/^(w|week|н|неделя)$/i, (msg, match) => {
-  bot.sendMessage(msg.chat.id, `${currentWeek()} неделя`);
+// Week
+bot.onText(/^\/?(w|week|н|неделя)$/i, (msg, match) => {
+  bot.sendMessage(msg.chat.id, `${sch.currentWeek()} неделя`);
 });
 
-bot.onText(/^(g|group|г|группа) (.+)$/i, (msg, match) => {
-  detectGroup(match[2])
+// Memorize group
+bot.onText(/^\/?(g|group|г|группа) (.+)$/i, (msg, match) => {
+  sch.detectGroup(match[2])
     .then(res => {
       if (res.length == 0) {
         bot.sendMessage(msg.chat.id, 'Подходящих групп не найдено. Возможно Вы вводите группу с ошибкой, пример: ИВТб-3302-02-00 (без учета регистра)');
@@ -73,7 +77,8 @@ bot.onText(/^(g|group|г|группа) (.+)$/i, (msg, match) => {
     });
 });
 
-bot.onText(/^(s|schedule|р|расписание)$/i, (msg, match) => {
+// Schedule
+bot.onText(/^\/?(s|schedule|р|расписание)$/i, (msg, match) => {
   redis.get(msg.from.id, (err, groupId) => {
     if (err) {
       console.error(`Error: ${err}`);
@@ -81,9 +86,9 @@ bot.onText(/^(s|schedule|р|расписание)$/i, (msg, match) => {
     }
 
     if (groupId) {
-      schedule(groupId)
+      sch.schedule(groupId)
         .then(schedule => {
-          rings().then(rings => {
+          sch.rings().then(rings => {
             answer = [];
             rings.forEach((v, i) => {
               answer.push(`${v} => ${schedule.day[i]}`);
@@ -99,59 +104,3 @@ bot.onText(/^(s|schedule|р|расписание)$/i, (msg, match) => {
     }
   });
 });
-
-bot.on('message', (msg) => {
-  const visit = new Visit({ telegram_id: msg.from.id });
-  visit.save();
-  console.log(`From: ${msg.from.id}:${msg.from.username}; Message: ${msg.text}`);
-});
-
-function rings() {
-  return new Promise((resolve, reject) => {
-    axios.get(`${BASE_API}/v2/calls`).then(res => {
-      const rings = [];
-      res.data.forEach((v, i) => {
-        rings.push(`${i + 1}) ${v.start}-${v.end}`);
-      });
-      resolve(rings);
-    }).catch(err => { reject(err); });
-  });
-}
-
-function currentWeek() {
-  const termStartDate = new Date(process.env.FIRST_WEEK_START);
-  const currentDate = new Date();
-  const timeDiff = Math.abs(currentDate.getTime() - termStartDate.getTime());
-  const diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
-  return Math.floor(diffDays / 7) % 2 + 1;
-}
-
-function detectGroup(groupName) {
-  return new Promise((resolve, reject) => {
-    axios.get(`${BASE_API}/v2/groups.json`).then(res => {
-      const similarGroups = res.data.filter(g => {
-        const regExp = new RegExp(groupName, "i");
-        return g.name.search(regExp) >= 0;
-      });
-      resolve(similarGroups);
-    }).catch(err => { reject(err); });
-  });
-}
-
-function schedule(groupId) {
-  return new Promise((resolve, reject) => {
-    axios.get(`${BASE_API}/schedule/${groupId}/${process.env.SEASON}`).then(res => {
-      let curWeekNumber = currentWeek();
-      let date = new Date();
-      let curDayNumber = (date.getDay() + 6) % 7;
-      // If sunday then go to mon of next week
-      if (curDayNumber == 6) {
-        date.setDate(date.getDate() + 1);
-        curDayNumber = 0;
-        curWeekNumber = (curWeekNumber + 1) % 2;
-      }
-      const curWeek = res.data.weeks[curWeekNumber]
-      resolve({ day: curWeek[curDayNumber], date: date });
-    }).catch(err => { reject(err); })
-  });
-}
