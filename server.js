@@ -37,6 +37,7 @@ const HELP =
 2. н|неделя|w|week - номер текущей недели
 3. г|группа|g|group имя_группы - бот запомнит, в какой вы группе (можно вводить не полностью, предложит варианты)
 4. р|расписание|s|schedule - расписание на текущий день (работает, если бот знает группу)
+5. u|url|с|ссылка - ссылка на полное расписание группы
 * Я пока молодой бот, меня батька создал лежа на диване сегодня с утра (4 февраля 2018), поэтому пишите ему https://vk.com/volodyaglyxix`;
 
 bot.on('message', (msg) => {
@@ -89,6 +90,22 @@ bot.onText(/^\/?(g|group|г|группа) (.+)$/i, (msg, match) => {
       logger.error(err);
       bot.sendMessage(msg.chat.id, 'Ууупс... Какая-то ошибка :(');
     });
+});
+
+// Schedule url
+bot.onText(/^(url|u|ссылка|с)$/i, (msg, match) => {
+  redis.get(msg.from.id, (err, groupId) => {
+    if (err) {
+      logger.error(`Error: ${err}`);
+      return;
+    }
+
+    if (groupId) {
+      bot.sendMessage(msg.chat.id, `https://vyatsuschedule.herokuapp.com/mobile/${groupId}/${process.env.SEASON}`);
+    } else {
+      bot.sendMessage(msg.chat.id, "К сожалению, я очень забывчивый бот. Либо Вы впервые здесь, либо я Вас забыл. Укажите группу, например:\n группа ивтб-3302");
+    }
+  });
 });
 
 // Schedule
