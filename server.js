@@ -22,12 +22,12 @@ const bot = new TelegramBot(process.env.TG_BOT_TOKEN, { polling: true });
 
 const HELP = 
 `Чат бот ВятГУ для просмотра расписания студентов. Альфа-бета-гамма версия. Могут быть баги.
-Команды (палка | означает ИЛИ):
+Команды (палка "|" означает ИЛИ):
 * з|звонки|r|rings - расписание звонков
 * н|неделя|w|week - номер текущей недели
-* г|группа|g|group <имя_группы> - бот запомнит в какой вы группе (можно вводить не полностью, предложит варианты)
-* р|расписание|s|schedule - расписание на текущий день (работает если бот знает группу)
-`;
+* г|группа|g|group имя_группы - бот запомнит, в какой вы группе (можно вводить не полностью, предложит варианты)
+* р|расписание|s|schedule - расписание на текущий день (работает, если бот знает группу)
+Я пока молодой бот, меня батька создал лежа на диване сегодня с утра (4 февраля 2018), поэтому пишите ему в vk https://vk.com/volodyaglyxix`;
 
 redis.on("error", function (err) {
   console.error("Error " + err);
@@ -103,7 +103,7 @@ bot.onText(/^(s|schedule|р|расписание)$/i, (msg, match) => {
 bot.on('message', (msg) => {
   const visit = new Visit({ telegram_id: msg.from.id });
   visit.save();
-  console.log(`From: ${msg.from.username}; Message: ${msg.text}`);
+  console.log(`From: ${msg.from.id}:${msg.from.username}; Message: ${msg.text}`);
 });
 
 function rings() {
