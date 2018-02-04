@@ -1,4 +1,8 @@
-require('dotenv').config();
+const ENV = process.env.NODE_ENV || 'development';
+
+if (ENV == 'development') {
+  require('dotenv').config();
+}
 
 const BASE_API = process.env.BASE_API;
 const TOKEN = process.env.TG_BOT_TOKEN;
