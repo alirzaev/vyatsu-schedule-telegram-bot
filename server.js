@@ -3,6 +3,10 @@ if (ENV == 'development') require('dotenv').config();
 
 const sch = require('./schedule');
 
+// Logger
+const logger = require('log4js').getLogger();
+logger.level = 'debug';
+
 // Mongoose
 require('mongoose').connect(process.env.MONGO_URL);
 const Visit = require('./models/Visit');
@@ -10,7 +14,7 @@ const Visit = require('./models/Visit');
 // Redis
 const redis = require('redis').createClient(process.env.REDIS_URL);
 redis.on("error", function (err) {
-  console.error("Error " + err);
+  logger.error("Error " + err);
 });
 
 // Telegram bot
@@ -20,16 +24,16 @@ const bot = new TelegramBot(process.env.TG_BOT_TOKEN, { polling: true });
 const HELP =
 `Чат бот ВятГУ для просмотра расписания студентов. Альфа-бета-гамма версия. Могут быть баги.
 Команды (палка "|" означает ИЛИ):
-* з|звонки|r|rings - расписание звонков
-* н|неделя|w|week - номер текущей недели
-* г|группа|g|group имя_группы - бот запомнит, в какой вы группе (можно вводить не полностью, предложит варианты)
-* р|расписание|s|schedule - расписание на текущий день (работает, если бот знает группу)
-Я пока молодой бот, меня батька создал лежа на диване сегодня с утра (4 февраля 2018), поэтому пишите ему https://vk.com/volodyaglyxix`;
+1. з|звонки|r|rings - расписание звонков
+2. н|неделя|w|week - номер текущей недели
+3. г|группа|g|group имя_группы - бот запомнит, в какой вы группе (можно вводить не полностью, предложит варианты)
+4. р|расписание|s|schedule - расписание на текущий день (работает, если бот знает группу)
+* Я пока молодой бот, меня батька создал лежа на диване сегодня с утра (4 февраля 2018), поэтому пишите ему https://vk.com/volodyaglyxix`;
 
 bot.on('message', (msg) => {
-  const visit = new Visit({ telegram_id: msg.from.id });
+  const visit = new Visit({ telegram_id: msg.from.id, message: msg.text });
   visit.save();
-  console.log(`From: ${msg.from.id}:${msg.from.username}; Message: ${msg.text}`);
+  logger.info(`From: ${msg.from.id}:${msg.from.username}; Message: ${msg.text}`);
 });
 
 // Start bot
@@ -49,7 +53,7 @@ bot.onText(/^\/?(r|rings|з|звонки)$/i, (msg, match) => {
       bot.sendMessage(msg.chat.id, `Звонки:\n${rings.join("\n")}`);
     })
     .catch(err => {
-      console.error(err);
+      logger.error(err);
       bot.sendMessage(msg.chat.id, 'Ууупс... Какая-то ошибка :(');
     });
 });
@@ -73,7 +77,8 @@ bot.onText(/^\/?(g|group|г|группа) (.+)$/i, (msg, match) => {
       }
     })
     .catch(err => {
-      console.error(err);
+      logger.error(err);
+      bot.sendMessage(msg.chat.id, 'Ууупс... Какая-то ошибка :(');
     });
 });
 
@@ -81,7 +86,7 @@ bot.onText(/^\/?(g|group|г|группа) (.+)$/i, (msg, match) => {
 bot.onText(/^\/?(s|schedule|р|расписание)$/i, (msg, match) => {
   redis.get(msg.from.id, (err, groupId) => {
     if (err) {
-      console.error(`Error: ${err}`);
+      logger.error(`Error: ${err}`);
       return;
     }
 
@@ -97,7 +102,8 @@ bot.onText(/^\/?(s|schedule|р|расписание)$/i, (msg, match) => {
           });
         })
         .catch(err => {
-          console.error(err);
+          logger.error(err);
+          bot.sendMessage(msg.chat.id, 'Ууупс... Какая-то ошибка :(');
         });
     } else {
       bot.sendMessage(msg.chat.id, "К сожалению, я очень забывчивый бот. Либо Вы впервые здесь, либо я Вас забыл. Укажите группу, например:\n группа ивтб-3302");
