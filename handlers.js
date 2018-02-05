@@ -88,6 +88,7 @@ module.exports = function(ctx) {
         }
       })
       .catch(err => {
+        logger.error(err);
         bot.sendMessage(msg.chat.id, msgs.forgotStudent);
       });
   };
