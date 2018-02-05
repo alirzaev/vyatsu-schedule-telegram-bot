@@ -70,7 +70,6 @@ bot.onText(/^\/?(w|week|н|неделя)$/i, (msg, match) => {
 
 // Memorize group
 bot.onText(/^\/?(g|group|г|группа) (.+)$/i, (msg, match) => {
-  logger.info(match);
   memorizeGroup(msg, match);
 });
 
@@ -86,7 +85,6 @@ bot.onText(/^\/?(s|schedule|р|расписание)$/i, (msg, match) => {
 
 bot.on('callback_query', function (msg) {
   message = msg.message;
-  logger.info(message);
   const data = JSON.parse(msg.data);
   switch(data.type) {
     case 'next':

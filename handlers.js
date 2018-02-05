@@ -17,7 +17,6 @@ module.exports = function(ctx) {
   };
 
   module.memorizeGroup = function(msg, match) {
-    logger.info(match);
     const groupName = match[2];
 
     if (!groupName) {
