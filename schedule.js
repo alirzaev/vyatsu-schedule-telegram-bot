@@ -31,11 +31,14 @@ module.exports = {
   },
 
   detectGroup: function(groupName) {
+    
     return new Promise((resolve, reject) => {
       axios.get(`${BASE_API}/v2/groups.json`).then(res => {
         const similarGroups = res.data.filter(g => {
+          groupName = groupName.trim().replace('-', '');
+          const name = g.name.trim().replace('-', '');
           const regExp = new RegExp(groupName, "i");
-          return g.name.search(regExp) >= 0;
+          return name.search(regExp) >= 0;
         });
         resolve(similarGroups);
       }).catch(err => { reject(err); });
