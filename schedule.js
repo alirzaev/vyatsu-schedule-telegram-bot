@@ -25,6 +25,7 @@ module.exports = {
   currentWeek: function() {
     const termStartDate = new Date(process.env.FIRST_WEEK_START);
     const currentDate = new Date();
+    currentDate.setHours(currentDate.getHours() + 3); // +03
     const timeDiff = Math.abs(currentDate.getTime() - termStartDate.getTime());
     const diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
     return Math.floor(diffDays / 7) % 2 + 1;
@@ -50,7 +51,9 @@ module.exports = {
       axios.get(`${BASE_API}/schedule/${groupId}/${process.env.SEASON}`).then(res => {
         let curWeekNumber = this.currentWeek() - 1;
         let date = new Date();
+        date.setHours(date.getHours() + 3); // +03
         let curDayNumber = (date.getDay() + 6) % 7;
+        console.log(`AHTUNG! ${date}`);
         // If sunday then go to mon of next week
         if (curDayNumber == 6) {
           date.setDate(date.getDate() + 1);
