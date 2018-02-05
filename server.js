@@ -162,7 +162,7 @@ bot.onText(/test/i, (msg, match) => {
 });
 
 bot.on('callback_query', function (msg) {
-  logger.info(msg.data);
+  message = msg.message;
   sch.schedule(msg.data, 1)
     .then(schedule => {
       sch.rings(true).then(rings => {
@@ -172,11 +172,11 @@ bot.on('callback_query', function (msg) {
             answer.push(`${v} > ${schedule.day[i]}`);
           }
         });
-        bot.sendMessage(msg.chat.id, `Расписание (${schedule.date.toLocaleDateString()}, ${dateHelper.dayName(schedule.date)}):\n${answer.join("\n")}`);
+        bot.sendMessage(message.chat.id, `Расписание (${schedule.date.toLocaleDateString()}, ${dateHelper.dayName(schedule.date)}):\n${answer.join("\n")}`);
       });
     })
     .catch(err => {
       logger.error(err);
-      bot.sendMessage(msg.chat.id, 'Ууупс... Какая-то ошибка :(');
+      bot.sendMessage(message.chat.id, 'Ууупс... Какая-то ошибка :(');
     });
 });
