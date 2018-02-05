@@ -53,7 +53,6 @@ module.exports = {
         let date = new Date();
         date.setHours(date.getHours() + 3); // +03
         let curDayNumber = (date.getDay() + 6) % 7;
-        console.log(`AHTUNG! ${date}`);
         // If sunday then go to mon of next week
         if (curDayNumber == 6) {
           date.setDate(date.getDate() + 1);
