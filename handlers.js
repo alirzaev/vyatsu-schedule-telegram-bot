@@ -66,22 +66,26 @@ module.exports = function(ctx) {
             answer.push(`${v} > ${schedule.day[i]}`);
           }
         });
-        console.log(answer);
         let options = {};
         if (!nextDay) {
-          options.reply_markup = { 
+          const keyboard = { 
             inline_keyboard: [
               [
                 { text: 'Next', callback_data: { type: 'next', groupId } }
               ]
             ]
           };
+          bot.sendMessage(
+            msg.chat.id,
+            `Расписание (${schedule.date.toLocaleDateString()}, ${dateHelper.dayName(schedule.date)}):\n${answer.join("\n")}`,
+            { reply_markup: keyboard }
+          );
+        } else {
+          bot.sendMessage(
+            msg.chat.id,
+            `Расписание (${schedule.date.toLocaleDateString()}, ${dateHelper.dayName(schedule.date)}):\n${answer.join("\n")}`
+          );
         }
-        bot.sendMessage(
-          msg.chat.id,
-          `Расписание (${schedule.date.toLocaleDateString()}, ${dateHelper.dayName(schedule.date)}):\n${answer.join("\n")}`,
-          options
-        );
       })
       .catch(err => {
         bot.sendMessage(msg.chat.id, msgs.forgotStudent);
