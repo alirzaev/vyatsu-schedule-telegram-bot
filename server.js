@@ -162,7 +162,7 @@ bot.onText(/test/i, (msg, match) => {
 });
 
 bot.on('callback_query', function (msg) {
-  sch.schedule(groupId)
+  sch.schedule(msg.data)
     .then(schedule => {
       sch.rings(true).then(rings => {
         answer = [];
