@@ -55,7 +55,6 @@ module.exports = function(ctx) {
     redis.getAsync(msg.from.id)
       .then(groupId => {
         if (!groupId) throw 'Group id not found';
-        console.log(groupId);
         return Promise.all([sch.rings(true), sch.schedule(groupId, nextDay)]);
       })
       .then(values => {
@@ -67,6 +66,7 @@ module.exports = function(ctx) {
             answer.push(`${v} > ${schedule.day[i]}`);
           }
         });
+        console.log(answer);
         let options = {};
         if (!nextDay) {
           options.reply_markup = { 
