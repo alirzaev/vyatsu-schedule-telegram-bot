@@ -17,7 +17,7 @@ module.exports = function(ctx) {
 
   module.memorizeGroup = function(msg, match) {
     logger.info(match);
-    const groupName = match[1];
+    const groupName = match[2];
 
     if (!groupName) {
       bot.sendMessage(msg.chat.id, msgs.group.forgotName);

@@ -69,7 +69,7 @@ bot.onText(/^\/?(w|week|н|неделя)$/i, (msg, match) => {
 });
 
 // Memorize group
-bot.onText(/^\/?g|group|г|группа(.+)$/i, (msg, match) => {
+bot.onText(/^\/?(g|group|г|группа) (.+)$/i, (msg, match) => {
   logger.info(match);
   memorizeGroup(msg, match);
 });
