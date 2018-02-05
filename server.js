@@ -39,7 +39,7 @@ bot.setWebHook(`${URL}${TOKEN}`);
 // Save all needed dependencies to ctx
 const ctx = { logger, redis, bot }
 
-const { rings, memorizeGroup, link, schedule } = require('./handlers')(ctx);
+const { rings, memorizeGroup, link, schedule, scheduleWithGroupID } = require('./handlers')(ctx);
 
 // Save request
 bot.on('message', (msg) => {
@@ -90,7 +90,7 @@ bot.on('callback_query', function (msg) {
   const data = JSON.parse(msg.data);
   switch(data.type) {
     case 'next':
-      schedule(message, null, true);
+      scheduleWithGroupID(data.groupId, true);
       break;
   }
 });
