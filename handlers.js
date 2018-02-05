@@ -19,7 +19,7 @@ module.exports = function(ctx) {
     const groupName = match[1];
 
     if (!groupName) {
-      bot.sendMessage(msgs.group.forgotName);
+      bot.sendMessage(msg.chat.id, msgs.group.forgotName);
       return;
     }
 
