@@ -86,6 +86,7 @@ bot.onText(/^\/?(s|schedule|р|расписание)$/i, (msg, match) => {
 
 bot.on('callback_query', function (msg) {
   message = msg.message;
+  logger.info(message);
   const data = JSON.parse(msg.data);
   switch(data.type) {
     case 'next':
