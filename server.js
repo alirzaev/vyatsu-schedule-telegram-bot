@@ -74,22 +74,26 @@ bot.onText(/^\/?(w|week|н|неделя)$/i, (msg, match) => {
 });
 
 // Memorize group
-bot.onText(/^\/?(g|group|г|группа) (.+)$/i, (msg, match) => {
-  sch.detectGroup(match[2])
-    .then(res => {
-      if (res.length == 0) {
-        bot.sendMessage(msg.chat.id, 'Подходящих групп не найдено. Возможно Вы вводите группу с ошибкой, пример: ИВТб-3302-02-00 (без учета регистра)');
-      } else if (res.length > 1) {
-        bot.sendMessage(msg.chat.id, `Список похожих групп:\n${res.map(g => g.name).join("\n")}`);
-      } else {
-        redis.set(msg.from.id, res[0].id);
-        bot.sendMessage(msg.chat.id, `Я запомнил, что вы учитесь в группе ${res[0].name} ;)`);
-      }
-    })
-    .catch(err => {
-      logger.error(err);
-      bot.sendMessage(msg.chat.id, 'Ууупс... Какая-то ошибка :(');
-    });
+bot.onText(/^\/?(g|group|г|группа)(.+)$/i, (msg, match) => {
+  if (match[2]) {
+    sch.detectGroup(match[2])
+      .then(res => {
+        if (res.length == 0) {
+          bot.sendMessage(msg.chat.id, 'Подходящих групп не найдено. Возможно Вы вводите группу с ошибкой, пример: ИВТб-3302-02-00 (без учета регистра)');
+        } else if (res.length > 1) {
+          bot.sendMessage(msg.chat.id, `Список похожих групп:\n${res.map(g => g.name).join("\n")}`);
+        } else {
+          redis.set(msg.from.id, res[0].id);
+          bot.sendMessage(msg.chat.id, `Я запомнил, что вы учитесь в группе ${res[0].name} ;)`);
+        }
+      })
+      .catch(err => {
+        logger.error(err);
+        bot.sendMessage(msg.chat.id, 'Ууупс... Какая-то ошибка :(');
+      });
+  } else {
+    bot.sendMessage(msg.chat.id, 'Повторите сообщение, не забыв указать имя группы :)');
+  }
 });
 
 // Schedule url
