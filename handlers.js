@@ -70,7 +70,7 @@ module.exports = function(ctx) {
           const keyboard = { 
             inline_keyboard: [
               [
-                { text: 'Next', callback_data: { type: 'next', schedule.groupId } }
+                { text: 'Next', callback_data: { type: 'next', groupId: schedule.groupId } }
               ]
             ]
           };
