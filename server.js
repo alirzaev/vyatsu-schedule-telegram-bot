@@ -162,8 +162,8 @@ bot.onText(/test/i, (msg, match) => {
 });
 
 bot.on('callback_query', function (msg) {
-  logger.info(msg);
-  sch.schedule(msg.data)
+  logger.info(msg.data);
+  sch.schedule(msg.data, 1)
     .then(schedule => {
       sch.rings(true).then(rings => {
         answer = [];
