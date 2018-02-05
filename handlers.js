@@ -93,7 +93,7 @@ module.exports = function(ctx) {
       });
   };
 
-  module.scheduleWithGroupID = function(groupId, nextDay) {
+  module.scheduleWithGroupID = function(msg, groupId, nextDay) {
     Promise.all([sch.rings(true), sch.schedule(groupId, nextDay)])
       .then(values => {
         const rings = values[0];

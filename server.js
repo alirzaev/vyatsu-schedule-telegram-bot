@@ -90,7 +90,7 @@ bot.on('callback_query', function (msg) {
   const data = JSON.parse(msg.data);
   switch(data.type) {
     case 'next':
-      scheduleWithGroupID(data.groupId, true);
+      scheduleWithGroupID(message, data.groupId, true);
       break;
   }
 });
