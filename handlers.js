@@ -55,9 +55,11 @@ module.exports = function(ctx) {
     redis.getAsync(msg.from.id)
       .then(groupId => {
         if (!groupId) throw 'Group id not found';
+        console.log(groupId);
         return Promise.all([sch.rings(true), sch.schedule(groupId, nextDay)]);
       })
       .then(values => {
+        console.log(values);
         const rings = values[0];
         const schedule = values[1];
         answer = [];
