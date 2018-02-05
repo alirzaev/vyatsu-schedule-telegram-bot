@@ -156,6 +156,6 @@ bot.onText(/test/i, (msg, match) => {
 });
 
 bot.on('callback_query', function (msg) {
-  logger.info(`Msg: ${msg}`);
+  logger.info(msg);
   bot.answerCallbackQuery(msg.id, 'You hit a button!', false);
 });
