@@ -142,3 +142,19 @@ bot.onText(/^\/?(s|schedule|р|расписание)$/i, (msg, match) => {
     }
   });
 });
+
+bot.onText(/test/i, (msg, match) => {
+  const keyboard = {
+    inline_keyboard: [
+      [
+        { text: 'Sandwich', callback_data: 'sandwich' },
+        { text: 'A juicy steak', callback_data: 'steak' }
+      ]
+    ]
+  };
+  bot.sendMessage(msg.chat.id, 'text', { reply_markup: keyboard });
+});
+
+bot.on('callback_query', function (msg) {
+  bot.answerCallbackQuery(msg.id, 'You hit a button!', false);
+});
