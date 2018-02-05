@@ -45,7 +45,7 @@ module.exports = {
   schedule: function(groupId) {
     return new Promise((resolve, reject) => {
       axios.get(`${BASE_API}/schedule/${groupId}/${process.env.SEASON}`).then(res => {
-        let curWeekNumber = this.currentWeek();
+        let curWeekNumber = this.currentWeek() - 1;
         let date = new Date();
         let curDayNumber = (date.getDay() + 6) % 7;
         // If sunday then go to mon of next week
