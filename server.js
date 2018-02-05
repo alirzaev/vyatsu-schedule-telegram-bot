@@ -19,9 +19,10 @@ require('mongoose').connect(process.env.MONGO_URL);
 const Visit = require('./models/Visit');
 
 // Redis
-const redis = require('redis').createClient(process.env.REDIS_URL);
-Promise.promisifyAll(redis.RedisClient.prototype);
-Promise.promisifyAll(redis.Multi.prototype);
+const Redis = require('redis');
+Promise.promisifyAll(Redis.RedisClient.prototype);
+Promise.promisifyAll(Redis.Multi.prototype);
+const redis = Redis.createClient(process.env.REDIS_URL);
 redis.on("error", function (err) {
   logger.error("Error " + err);
 });
