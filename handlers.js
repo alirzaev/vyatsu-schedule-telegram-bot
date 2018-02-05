@@ -41,7 +41,7 @@ module.exports = function(ctx) {
   };
 
   module.link = function(msg, match) {
-    redis.get(msg.from.id).then(groupId => {
+    redis.getAsync(msg.from.id).then(groupId => {
       if (!groupId) throw 'Group id not found';
       bot.sendMessage(msg.chat.id, `https://vyatsuschedule.herokuapp.com/mobile/${groupId}/${process.env.SEASON}`);
     }).catch(err => {
@@ -51,7 +51,7 @@ module.exports = function(ctx) {
   };
 
   module.schedule = function(msg, match, nextDay) {
-    redis.get(msg.from.id)
+    redis.getAsync(msg.from.id)
       .then(groupId => {
         if (!groupId) throw 'Group id not found';
         return Promise.all([sch.rings(true), sch.schedule(groupId, nextDay)]);
