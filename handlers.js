@@ -59,10 +59,9 @@ module.exports = function(ctx) {
         return Promise.all([sch.rings(true), sch.schedule(groupId, nextDay)]);
       })
       .then(values => {
-        console.log(values);
         const rings = values[0];
         const schedule = values[1];
-        answer = [];
+        let answer = [];
         rings.forEach((v, i) => {
           if (schedule.day[i]) {
             answer.push(`${v} > ${schedule.day[i]}`);
