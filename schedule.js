@@ -70,7 +70,7 @@ module.exports = {
             .replace(/Проведение ?практических ?занятий,? ?семинаров/im, 'Лаб.');
           return mapped.replace(/(.+-\d{4}-\d{2}-\d{2}, )/im, '');
         });
-        resolve({ day: cleaningCurDay, date: date });
+        resolve({ day: cleaningCurDay, date: date, groupId });
       }).catch(err => { reject(err); })
     });
   }

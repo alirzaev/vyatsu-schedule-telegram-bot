@@ -66,12 +66,11 @@ module.exports = function(ctx) {
             answer.push(`${v} > ${schedule.day[i]}`);
           }
         });
-        let options = {};
         if (!nextDay) {
           const keyboard = { 
             inline_keyboard: [
               [
-                { text: 'Next', callback_data: { type: 'next', groupId } }
+                { text: 'Next', callback_data: { type: 'next', schedule.groupId } }
               ]
             ]
           };
