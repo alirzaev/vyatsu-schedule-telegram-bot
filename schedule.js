@@ -46,13 +46,15 @@ module.exports = {
     });
   },
 
-  schedule: function(groupId) {
+  schedule: function(groupId, nextDay) {
+    nextDay = nextDay || 0;
+    nextDay = parseInt(nextDay);
     return new Promise((resolve, reject) => {
       axios.get(`${BASE_API}/schedule/${groupId}/${process.env.SEASON}`).then(res => {
         let curWeekNumber = this.currentWeek() - 1;
         let date = new Date();
         date.setHours(date.getHours() + 3); // +03
-        let curDayNumber = (date.getDay() + 6) % 7;
+        let curDayNumber = (date.getDay() + 6 + nextDay) % 7;
         // If sunday then go to mon of next week
         if (curDayNumber == 6) {
           date.setDate(date.getDate() + 1);
@@ -63,7 +65,8 @@ module.exports = {
         const cleaningCurDay = curWeek[curDayNumber].map((el) => {
           let mapped = el.replace("\r", ' ')
             .replace(/Чтение ?лекций/im, 'Лек.')
-            .replace(/Проведение ?лабораторных ?занятий/im, 'Лаб.');
+            .replace(/Проведение ?лабораторных ?занятий/im, 'Лаб.')
+            .replace(/Проведение ?практических ?занятий,? ?семинаров/im, 'Лаб.');
           return mapped.replace(/(.+-\d{4}-\d{2}-\d{2}, )/im, '');
         });
         resolve({ day: cleaningCurDay, date: date });

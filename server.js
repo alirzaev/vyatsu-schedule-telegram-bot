@@ -130,7 +130,16 @@ bot.onText(/^\/?(s|schedule|р|расписание)$/i, (msg, match) => {
                 answer.push(`${v} > ${schedule.day[i]}`);
               }
             });
-            bot.sendMessage(msg.chat.id, `Расписание (${schedule.date.toLocaleDateString()}, ${dateHelper.dayName(schedule.date)}):\n${answer.join("\n")}`);
+            const keyboard = {
+              inline_keyboard: [
+                [{ text: 'Next', callback_data: groupId }]
+              ]
+            };
+            bot.sendMessage(
+              msg.chat.id,
+              `Расписание (${schedule.date.toLocaleDateString()}, ${dateHelper.dayName(schedule.date)}):\n${answer.join("\n")}`,
+              { reply_markup: keyboard }
+            );
           });
         })
         .catch(err => {
@@ -146,16 +155,27 @@ bot.onText(/^\/?(s|schedule|р|расписание)$/i, (msg, match) => {
 bot.onText(/test/i, (msg, match) => {
   const keyboard = {
     inline_keyboard: [
-      [
-        { text: 'Sandwich', callback_data: 'sandwich' },
-        { text: 'A juicy steak', callback_data: 'steak' }
-      ]
+      [{ text: 'Next', callback_data: 'next' }]
     ]
   };
   bot.sendMessage(msg.chat.id, 'text', { reply_markup: keyboard });
 });
 
 bot.on('callback_query', function (msg) {
-  logger.info(msg);
-  bot.answerCallbackQuery(msg.id, 'You hit a button!', false);
+  sch.schedule(groupId)
+    .then(schedule => {
+      sch.rings(true).then(rings => {
+        answer = [];
+        rings.forEach((v, i) => {
+          if (schedule.day[i]) {
+            answer.push(`${v} > ${schedule.day[i]}`);
+          }
+        });
+        bot.sendMessage(msg.chat.id, `Расписание (${schedule.date.toLocaleDateString()}, ${dateHelper.dayName(schedule.date)}):\n${answer.join("\n")}`);
+      });
+    })
+    .catch(err => {
+      logger.error(err);
+      bot.sendMessage(msg.chat.id, 'Ууупс... Какая-то ошибка :(');
+    });
 });
