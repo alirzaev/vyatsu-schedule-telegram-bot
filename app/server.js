@@ -5,7 +5,6 @@ const TOKEN = process.env.TG_BOT_TOKEN;
 const URL = process.env.URL;
 
 const sch = require('./schedule');
-const dateHelper = require('./helpers/date');
 const msgs = require('./messages');
 
 const Promise = require("bluebird");
@@ -69,7 +68,7 @@ bot.onText(/^\/?(w|week|н|неделя)$/i, (msg, match) => {
 });
 
 // Memorize group
-bot.onText(/^\/?(g|group|г|группа) (.+)$/i, (msg, match) => {
+bot.onText(/^\/?(g|group|г|группа)(.*)$/i, (msg, match) => {
   memorizeGroup(msg, match);
 });
 

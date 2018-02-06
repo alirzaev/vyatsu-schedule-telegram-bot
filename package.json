@@ -2,6 +2,9 @@
   "name": "tg-bot",
   "version": "0.1.0",
   "main": "server.js",
+  "scripts": {
+    "start": "node app/server.js"
+  },
   "license": "MIT",
   "author": "Glukhikh Vladimir <gluxix1993@gmail.com>",
   "dependencies": {
