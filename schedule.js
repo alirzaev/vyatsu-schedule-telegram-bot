@@ -7,18 +7,18 @@ const axios = require('axios');
 module.exports = {
   rings: function(onlyStart) {
     onlyStart = onlyStart || false;
+    const rings = require('./rings.json')
+
     return new Promise((resolve, reject) => {
-      axios.get(`${BASE_API}/v2/calls`).then(res => {
-        const rings = [];
-        res.data.forEach((v, i) => {
-          if (onlyStart){
-            rings.push(`${i + 1}) ${v.start}`);
-          } else {
-            rings.push(`${i + 1}) ${v.start}-${v.end}`);
-          }
-        });
-        resolve(rings);
-      }).catch(err => { reject(err); });
+      const times = [];
+      rings.forEach((v, i) => {
+        if (onlyStart){
+          times.push(`${i + 1}) ${v.start}`);
+        } else {
+          times.push(`${i + 1}) ${v.start}-${v.end}`);
+        }
+      });
+      resolve(times);
     });
   },
 
