@@ -69,7 +69,7 @@ bot.onText(/^\/?(w|week|н|неделя)$/i, (msg, match) => {
 });
 
 // Memorize group
-bot.onText(/^\/?(g|group|г|группа)(.*)$/i, (msg, match) => {
+bot.onText(/^\/?(g|group|г|группа) (.*)$/i, (msg, match) => {
   memorizeGroup(msg, match);
 });
 
@@ -80,15 +80,21 @@ bot.onText(/^(url|u|ссылка|с)$/i, (msg, match) => {
 
 // Schedule
 bot.onText(/^\/?(s|schedule|р|расписание)$/i, (msg, match) => {
-  schedule(msg, match);
+  schedule(msg);
 });
 
 bot.on('callback_query', function (msg) {
   message = msg.message;
   const data = JSON.parse(msg.data);
-  switch(data.type) {
-    case 'next':
-      scheduleWithGroupID(message, data.groupId, 1);
+  switch(data.t) {
+    case 'n':
+      m = {
+        from: { id: message.chat.id },
+        chat: { id: message.chat.id }
+      };
+      date = new Date();
+      date.setTime(Date.parse(data.d));
+      schedule(m, date, 1);
       break;
   }
 });

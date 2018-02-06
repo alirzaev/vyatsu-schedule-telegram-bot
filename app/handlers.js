@@ -52,40 +52,36 @@ module.exports = function(ctx) {
     });
   };
 
-  module.schedule = function(msg, match, nextDay) {
+  module.schedule = function(msg, date, nextDay) {
+    date = date || new Date();
     redis.getAsync(msg.from.id)
       .then(groupId => {
         if (!groupId) throw 'Group id not found';
-        return Promise.all([rings(true), schedule(groupId, nextDay)]);
+        return Promise.all([rings(true), schedule(groupId, date, nextDay)]);
       })
       .then(values => {
         const rings = values[0];
         const schedule = values[1];
-        let answer = [];
+        const answer = [];
         rings.forEach((v, i) => {
           if (schedule.day[i]) {
             answer.push(`${v} > ${schedule.day[i]}`);
           }
         });
-        if (!nextDay) {
-          const keyboard = { 
-            inline_keyboard: [
-              [
-                { text: 'Next', callback_data: JSON.stringify({ type: 'next', groupId: schedule.groupId }) }
-              ]
+        const keyboard = { 
+          inline_keyboard: [
+            [
+              { 
+                text: 'Next',
+                callback_data: JSON.stringify({ t: 'n', d: schedule.date.toDateString(), gid: schedule.groupId }) }
             ]
-          };
-          bot.sendMessage(
-            msg.chat.id,
-            `Расписание (${schedule.date.toLocaleDateString()}, ${dateHelper.dayName(schedule.date)}):\n${answer.join("\n")}`,
-            { reply_markup: keyboard }
-          );
-        } else {
-          bot.sendMessage(
-            msg.chat.id,
-            `Расписание (${schedule.date.toLocaleDateString()}, ${dateHelper.dayName(schedule.date)}):\n${answer.join("\n")}`
-          );
-        }
+          ]
+        };
+        bot.sendMessage(
+          msg.chat.id,
+          `Расписание (${schedule.date.toLocaleDateString()}, ${dateHelper.dayName(schedule.date)}):\n${answer.join("\n")}`,
+          { reply_markup: keyboard }
+        );
       })
       .catch(err => {
         logger.error(err);
@@ -94,7 +90,7 @@ module.exports = function(ctx) {
   };
 
   module.scheduleWithGroupID = function(msg, groupId, nextDay) {
-    Promise.all([rings(true), schedule(groupId, nextDay)])
+    Promise.all([rings(true), schedule(groupId, new Date(), nextDay)])
       .then(values => {
         const rings = values[0];
         const schedule = values[1];

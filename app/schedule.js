@@ -1,8 +1,10 @@
 const BASE_API = process.env.BASE_API;
-const axios = require('axios');
+
+const dateHelper = require('./helpers/date');
 
 module.exports = function(ctx) {
   const module = {};
+  const SUNDAY = 6;
 
   const { bot, redis, logger, axios } = ctx;
 
@@ -33,36 +35,53 @@ module.exports = function(ctx) {
   };
 
   module.detectGroup = function(groupName) {
-    return new Promise((resolve, reject) => {
-      axios.get(`${BASE_API}/v2/groups.json`).then(res => {
-        const similarGroups = res.data.filter(g => {
+    return redis.getAsync('cache:groups')
+      .then(groups => {
+        if (groups) {
+          return JSON.parse(groups);
+        }
+        return axios.get(`${BASE_API}/v2/groups.json`).then(res => {
+          return res.data;
+        });
+      })
+      .then(groups => {
+        redis.set('cache:groups', JSON.stringify(groups), 'EX', 3600); // Update expire 1 hour
+        const similarGroups = groups.filter(g => {
           groupName = groupName.trim().split('-').join('');
           const name = g.name.trim().split('-').join('');
-          const regExp = new RegExp(groupName, "i");
-          return name.search(regExp) >= 0;
+          return name.search(new RegExp(groupName, "i")) >= 0;
         });
-        resolve(similarGroups);
-      }).catch(err => { reject(err); });
-    });
+        return similarGroups;
+      })
   };
 
-  module.schedule = function(groupId, nextDay) {
+  module.schedule = function(groupId, date, nextDay) {
     nextDay = nextDay || 0;
     nextDay = parseInt(nextDay);
-    return new Promise((resolve, reject) => {
-      axios.get(`${BASE_API}/schedule/${groupId}/${process.env.SEASON}`).then(res => {
+    date.setDate(date.getDate() + nextDay);
+    date.setHours(date.getHours() + 3); // +03
+    return redis.getAsync(`cache:schedule:${groupId}`)
+      .then(schedule => {
+        if (schedule) {
+          logger.debug('FROM CACHE');
+          return JSON.parse(schedule);
+        }
+        logger.debug('FROM API');
+        return axios.get(`${BASE_API}/schedule/${groupId}/${process.env.SEASON}`).then(res => {
+          return res.data;
+        });
+      })
+      .then(schedule => {
+        redis.set(`cache:schedule:${groupId}`, JSON.stringify(schedule));
+        redis.expireat(`cache:schedule:${groupId}`, dateHelper.nextDayTimestamp());
         let curWeekNumber = module.currentWeek() - 1;
-        let date = new Date();
-        date.setDate(date.getDate() + nextDay);
-        date.setHours(date.getHours() + 3); // +03
         let curDayNumber = (date.getDay() + 6) % 7;
-        // If sunday then go to mon of next week
-        if (curDayNumber == 6) {
+        if (curDayNumber == SUNDAY) {
           date.setDate(date.getDate() + 1);
           curDayNumber = 0;
           curWeekNumber = (curWeekNumber + 1) % 2;
         }
-        const curWeek = res.data.weeks[curWeekNumber]
+        const curWeek = schedule.weeks[curWeekNumber];
         const cleaningCurDay = curWeek[curDayNumber].map((el) => {
           let mapped = el.replace("\r", ' ')
             .replace(/Чтение ?лекций/im, 'Лек.')
@@ -70,9 +89,8 @@ module.exports = function(ctx) {
             .replace(/Проведение ?практических ?занятий,? ?семинаров/im, 'Лаб.');
           return mapped.replace(/(.+-\d{4}-\d{2}-\d{2}, )/im, '');
         });
-        resolve({ day: cleaningCurDay, date: date, groupId });
-      }).catch(err => { reject(err); })
-    });
+        return { day: cleaningCurDay, date: date, groupId };
+      });
   };
 
   return module;
