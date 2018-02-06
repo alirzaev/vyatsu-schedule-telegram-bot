@@ -1,8 +1,12 @@
 const BASE_API = process.env.BASE_API;
 const axios = require('axios');
 
-module.exports = {
-  rings: function(onlyStart) {
+module.exports = function(ctx) {
+  const module = {};
+
+  const { bot, redis, logger, axios } = ctx;
+
+  module.rings = function(onlyStart) {
     onlyStart = onlyStart || false;
     const rings = require('./rings.json')
 
@@ -17,18 +21,18 @@ module.exports = {
       });
       resolve(times);
     });
-  },
+  };
 
-  currentWeek: function() {
+  module.currentWeek = function() {
     const termStartDate = new Date(process.env.FIRST_WEEK_START);
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 3); // +03
     const timeDiff = Math.abs(currentDate.getTime() - termStartDate.getTime());
     const diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
     return Math.floor(diffDays / 7) % 2 + 1;
-  },
+  };
 
-  detectGroup: function(groupName) {
+  module.detectGroup = function(groupName) {
     return new Promise((resolve, reject) => {
       axios.get(`${BASE_API}/v2/groups.json`).then(res => {
         const similarGroups = res.data.filter(g => {
@@ -40,14 +44,14 @@ module.exports = {
         resolve(similarGroups);
       }).catch(err => { reject(err); });
     });
-  },
+  };
 
-  schedule: function(groupId, nextDay) {
+  module.schedule = function(groupId, nextDay) {
     nextDay = nextDay || 0;
     nextDay = parseInt(nextDay);
     return new Promise((resolve, reject) => {
       axios.get(`${BASE_API}/schedule/${groupId}/${process.env.SEASON}`).then(res => {
-        let curWeekNumber = this.currentWeek() - 1;
+        let curWeekNumber = module.currentWeek() - 1;
         let date = new Date();
         date.setDate(date.getDate() + nextDay);
         date.setHours(date.getHours() + 3); // +03
@@ -69,5 +73,7 @@ module.exports = {
         resolve({ day: cleaningCurDay, date: date, groupId });
       }).catch(err => { reject(err); })
     });
-  }
+  };
+
+  return module;
 };

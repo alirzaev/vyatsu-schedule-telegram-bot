@@ -4,10 +4,10 @@ if (ENV == 'development') require('dotenv').config();
 const TOKEN = process.env.TG_BOT_TOKEN;
 const URL = process.env.URL;
 
-const sch = require('./schedule');
 const msgs = require('./messages');
 
 const Promise = require("bluebird");
+const axios = require('axios');
 
 // Logger
 const logger = require('log4js').getLogger();
@@ -36,9 +36,10 @@ const bot = new TelegramBot(TOKEN, {
 bot.setWebHook(`${URL}${TOKEN}`);
 
 // Save all needed dependencies to ctx
-const ctx = { logger, redis, bot }
+const ctx = { logger, redis, bot, axios }
 
 const { rings, memorizeGroup, link, schedule, scheduleWithGroupID } = require('./handlers')(ctx);
+const { currentWeek } = require('./schedule')(ctx);
 
 // Save request
 bot.on('message', (msg) => {
@@ -64,7 +65,7 @@ bot.onText(/^\/?(r|rings|з|звонки)$/i, (msg, match) => {
 
 // Week
 bot.onText(/^\/?(w|week|н|неделя)$/i, (msg, match) => {
-  bot.sendMessage(msg.chat.id, `${sch.currentWeek()} неделя`);
+  bot.sendMessage(msg.chat.id, `${currentWeek()} неделя`);
 });
 
 // Memorize group

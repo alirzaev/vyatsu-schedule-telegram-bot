@@ -1,14 +1,15 @@
-const sch = require('./schedule');
 const msgs = require('./messages');
 const dateHelper = require('./helpers/date');
 
 module.exports = function(ctx) {
-  let module = {};
+  const { rings, detectGroup, schedule } = require('./schedule')(ctx);
+
+  const module = {};
 
   const { bot, redis, logger } = ctx;
 
   module.rings = function(msg, match) {
-    sch.rings().then(times => {
+    rings().then(times => {
       bot.sendMessage(msg.chat.id, `Звонки:\n${times.join("\n")}`);
     }).catch(err => {
       logger.error(err);
@@ -24,7 +25,7 @@ module.exports = function(ctx) {
       return;
     }
 
-    sch.detectGroup(groupName)
+    detectGroup(groupName)
       .then(groups => {
         if (groups.length == 0) {
           bot.sendMessage(msg.chat.id, msgs.group.notFound);
@@ -55,7 +56,7 @@ module.exports = function(ctx) {
     redis.getAsync(msg.from.id)
       .then(groupId => {
         if (!groupId) throw 'Group id not found';
-        return Promise.all([sch.rings(true), sch.schedule(groupId, nextDay)]);
+        return Promise.all([rings(true), schedule(groupId, nextDay)]);
       })
       .then(values => {
         const rings = values[0];
@@ -93,7 +94,7 @@ module.exports = function(ctx) {
   };
 
   module.scheduleWithGroupID = function(msg, groupId, nextDay) {
-    Promise.all([sch.rings(true), sch.schedule(groupId, nextDay)])
+    Promise.all([rings(true), schedule(groupId, nextDay)])
       .then(values => {
         const rings = values[0];
         const schedule = values[1];
