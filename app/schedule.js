@@ -25,10 +25,10 @@ module.exports = function(ctx) {
     });
   };
 
-  module.currentWeek = function() {
+  module.currentWeek = function(currentDate) {
     const termStartDate = new Date(process.env.FIRST_WEEK_START);
-    const currentDate = new Date();
-    currentDate.setHours(currentDate.getHours() + 3); // +03
+    // const currentDate = new Date();
+    // currentDate.setHours(currentDate.getHours() + 3); // +03
     const timeDiff = Math.abs(currentDate.getTime() - termStartDate.getTime());
     const diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
     return Math.floor(diffDays / 7) % 2 + 1;
@@ -74,7 +74,7 @@ module.exports = function(ctx) {
       .then(schedule => {
         redis.set(`cache:schedule:${groupId}`, JSON.stringify(schedule));
         redis.expireat(`cache:schedule:${groupId}`, dateHelper.nextDayTimestamp());
-        let curWeekNumber = module.currentWeek() - 1;
+        let curWeekNumber = module.currentWeek(date) - 1;
         let curDayNumber = (date.getDay() + 6) % 7;
         if (curDayNumber == SUNDAY) {
           date.setDate(date.getDate() + 1);

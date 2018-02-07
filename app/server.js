@@ -65,7 +65,7 @@ bot.onText(/^\/?(r|rings|з|звонки)$/i, (msg, match) => {
 
 // Week
 bot.onText(/^\/?(w|week|н|неделя)$/i, (msg, match) => {
-  bot.sendMessage(msg.chat.id, `${currentWeek()} неделя`);
+  bot.sendMessage(msg.chat.id, `${currentWeek(new Date())} неделя`);
 });
 
 // Memorize group
