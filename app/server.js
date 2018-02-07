@@ -38,7 +38,7 @@ bot.setWebHook(`${URL}${TOKEN}`);
 // Save all needed dependencies to ctx
 const ctx = { logger, redis, bot, axios }
 
-const { rings, memorizeGroup, link, schedule, scheduleWithGroupID } = require('./handlers')(ctx);
+const { rings, memorizeGroup, link, schedule } = require('./handlers')(ctx);
 const { currentWeek } = require('./schedule')(ctx);
 
 // Save request
