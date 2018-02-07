@@ -29,6 +29,9 @@ module.exports = function(ctx) {
     const termStartDate = new Date(process.env.FIRST_WEEK_START);
     // const currentDate = new Date();
     // currentDate.setHours(currentDate.getHours() + 3); // +03
+    currentDate.setHours(0);
+    currentDate.setMinutes(0);
+    currentDate.setSeconds(0);
     const timeDiff = Math.abs(currentDate.getTime() - termStartDate.getTime());
     const diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
     return Math.floor(diffDays / 7) % 2 + 1;
