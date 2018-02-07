@@ -60,6 +60,9 @@ module.exports = function(ctx) {
     nextDay = parseInt(nextDay);
     date.setDate(date.getDate() + nextDay);
     date.setHours(date.getHours() + 3); // +03
+    console.log(date);
+    console.log(date.getDay());
+    console.log((date.getDay() + 6) % 7);
     return redis.getAsync(`cache:schedule:${groupId}`)
       .then(schedule => {
         if (schedule) {
