@@ -86,7 +86,7 @@ module.exports = function(ctx) {
           let mapped = el.replace("\r", ' ')
             .replace(/Чтение ?лекций/im, 'Лек.')
             .replace(/Проведение ?лабораторных ?занятий/im, 'Лаб.')
-            .replace(/Проведение ?практических ?занятий,? ?семинаров/im, 'Лаб.');
+            .replace(/Проведение ?практических ?занятий,? ?семинаров/im, 'Пр.');
           return mapped.replace(/(.+-\d{4}-\d{2}-\d{2}, )/im, '');
         });
         return { day: cleaningCurDay, date: date, groupId };
