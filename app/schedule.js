@@ -78,6 +78,7 @@ module.exports = function(ctx) {
         redis.set(`cache:schedule:${groupId}`, JSON.stringify(schedule));
         redis.expireat(`cache:schedule:${groupId}`, dateHelper.nextDayTimestamp());
         let curWeekNumber = module.currentWeek(date) - 1;
+        console.log(curWeekNumber);
         let curDayNumber = (date.getDay() + 6) % 7;
         if (curDayNumber == SUNDAY) {
           date.setDate(date.getDate() + 1);
