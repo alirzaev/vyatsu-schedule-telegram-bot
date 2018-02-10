@@ -33,7 +33,7 @@ module.exports = function(ctx) {
           bot.sendMessage(msg.chat.id, `Список похожих групп:\n${groups.map(g => g.name).join("\n")}`);
         } else {
           redis.set(msg.from.id, groups[0].id);
-          bot.sendMessage(msg.chat.id, `Я запомнил, что вы учитесь в группе ${groups[0].name} ;)`);
+          bot.sendMessage(msg.chat.id, `Я запомнил, что вы учитесь в группе *${groups[0].name}* ;)`, { parse_mode: 'Markdown' });
         }
       })
       .catch(err => {
@@ -65,7 +65,7 @@ module.exports = function(ctx) {
         const answer = [];
         rings.forEach((v, i) => {
           if (schedule.day[i]) {
-            answer.push(`${v} > ${schedule.day[i]}`);
+            answer.push(`*${v} >* ${schedule.day[i]}`);
           }
         });
         const keyboard = { 
@@ -80,7 +80,7 @@ module.exports = function(ctx) {
         bot.sendMessage(
           msg.chat.id,
           `Расписание (${schedule.date.toLocaleDateString()}, ${dateHelper.dayName(schedule.date)}):\n${answer.join("\n")}`,
-          { reply_markup: keyboard }
+          { reply_markup: keyboard, parse_mode: 'Markdown' }
         );
       })
       .catch(err => {
