@@ -73,7 +73,7 @@ module.exports = function(ctx) {
           inline_keyboard: [
             [
               { 
-                text: 'Next',
+                text: 'След. день',
                 callback_data: JSON.stringify({ t: 'n', d: schedule.date.toDateString(), gid: schedule.groupId })
               }
             ]
