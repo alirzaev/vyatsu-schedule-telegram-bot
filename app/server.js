@@ -38,7 +38,7 @@ bot.setWebHook(`${URL}${TOKEN}`);
 // Save all needed dependencies to ctx
 const ctx = { logger, redis, bot, axios }
 
-const { rings, memorizeGroup, link, schedule } = require('./handlers')(ctx);
+const { rings, memorizeGroup, link, schedule, locations } = require('./handlers')(ctx);
 const { currentWeek } = require('./schedule')(ctx);
 
 // Save request
@@ -55,7 +55,7 @@ bot.onText(/\/start/, (msg, match) => {
 
 // Help
 bot.onText(/^\/?(help|помощь)$/i, (msg, match) => {
-  bot.sendMessage(msg.chat.id, msgs.help);
+  bot.sendMessage(msg.chat.id, msgs.help, { parse_mode: 'HTML' });
 });
 
 // Rings
@@ -74,13 +74,17 @@ bot.onText(/^\/?(g|group|г|группа) (.*)$/i, (msg, match) => {
 });
 
 // Schedule url
-bot.onText(/^(url|u|ссылка|с)$/i, (msg, match) => {
+bot.onText(/^\/?(url|u|ссылка|с)$/i, (msg, match) => {
   link(msg, match);
 });
 
 // Schedule
 bot.onText(/^\/?(s|schedule|р|расписание)$/i, (msg, match) => {
   schedule(msg);
+});
+
+bot.onText(/^\/?(where|где) ?(\d*) ?(корпус)?$/i, (msg, match) => {
+  locations(msg, match);
 });
 
 bot.on('callback_query', function (msg) {

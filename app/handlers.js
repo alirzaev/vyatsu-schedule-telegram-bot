@@ -1,5 +1,6 @@
 const msgs = require('./messages');
 const dateHelper = require('./helpers/date');
+const buildings = require('./buildings.json');
 
 module.exports = function(ctx) {
   const { rings, detectGroup, schedule } = require('./schedule')(ctx);
@@ -73,7 +74,8 @@ module.exports = function(ctx) {
             [
               { 
                 text: 'Next',
-                callback_data: JSON.stringify({ t: 'n', d: schedule.date.toDateString(), gid: schedule.groupId }) }
+                callback_data: JSON.stringify({ t: 'n', d: schedule.date.toDateString(), gid: schedule.groupId })
+              }
             ]
           ]
         };
@@ -87,6 +89,20 @@ module.exports = function(ctx) {
         logger.error(err);
         bot.sendMessage(msg.chat.id, msgs.forgotStudent);
       });
+  };
+
+  module.locations = function(msg, match) {
+    const buildingNumber = parseInt(match[2]) - 1;
+    const building = buildings[buildingNumber];
+    if (building) {
+      bot.sendMessage(msg.chat.id, building.address).then(() => {
+        bot.sendLocation(msg.chat.id, building.latitude, building.longitude);
+      });
+    } else {
+      bot.sendMessage(msg.chat.id, 'Не знаю про что вы, но вот первый корпус').then(() => {
+        bot.sendLocation(msg.chat.id, buildings[0].latitude, buildings[0].longitude);
+      });
+    }
   };
 
   return module;

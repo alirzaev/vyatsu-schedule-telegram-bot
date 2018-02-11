@@ -1,6 +1,7 @@
 const BASE_API = process.env.BASE_API;
 
 const dateHelper = require('./helpers/date');
+const timediff = require('timediff');
 
 module.exports = function(ctx) {
   const module = {};
@@ -27,13 +28,7 @@ module.exports = function(ctx) {
 
   module.currentWeek = function(currentDate) {
     const termStartDate = new Date(process.env.FIRST_WEEK_START);
-    // const currentDate = new Date();
-    // currentDate.setHours(currentDate.getHours() + 3); // +03
-    currentDate.setHours(0);
-    currentDate.setMinutes(0);
-    currentDate.setSeconds(0);
-    const timeDiff = Math.abs(currentDate.getTime() - termStartDate.getTime());
-    const diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
+    const diffDays = timediff(termStartDate, currentDate, 'D').days;
     return Math.floor(diffDays / 7) % 2 + 1;
   };
 
@@ -52,7 +47,7 @@ module.exports = function(ctx) {
         const similarGroups = groups.filter(g => {
           groupName = groupName.trim().split('-').join('');
           const name = g.name.trim().split('-').join('');
-          return name.search(new RegExp(groupName, "i")) >= 0;
+          return name.search(new RegExp(groupName, 'i')) >= 0;
         });
         return similarGroups;
       })
@@ -66,10 +61,8 @@ module.exports = function(ctx) {
     return redis.getAsync(`cache:schedule:${groupId}`)
       .then(schedule => {
         if (schedule) {
-          logger.debug('FROM CACHE');
           return JSON.parse(schedule);
         }
-        logger.debug('FROM API');
         return axios.get(`${BASE_API}/schedule/${groupId}/${process.env.SEASON}`).then(res => {
           return res.data;
         });
