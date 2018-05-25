@@ -3,6 +3,7 @@ const dateHelper = require('./helpers/date');
 
 module.exports = function(ctx) {
   const { getRings, detectGroup, getSchedule } = require('./schedule')(ctx);
+  const groupsChooser = require('./groupsChooser')(ctx)
 
   const module = {};
 
@@ -87,6 +88,18 @@ module.exports = function(ctx) {
         bot.sendMessage(msg.chat.id, msgs.forgotStudent);
       });
   };
+
+  // t - type
+  module.processCallback = (msg) => {
+    const message = msg.message
+    const userId = msg.from.id
+    const chatId = message.chat.id
+
+    const data = JSON.parse(msg.data)
+    if (data.t == 'g') {
+      groupsChooser.processChoosing(data, userId, chatId)
+    }
+  }
 
   return module;
 };
