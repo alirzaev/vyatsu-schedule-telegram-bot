@@ -14,7 +14,7 @@ const logger = require('log4js').getLogger();
 logger.level = 'debug';
 
 // Mongoose
-require('mongoose').connect(process.env.MONGO_URL);
+require('mongoose').connect(process.env.MONGODB_URI);
 const Visit = require('./models/Visit');
 
 // Redis
@@ -30,7 +30,7 @@ redis.on("error", function (err) {
 const TelegramBot = require('node-telegram-bot-api');
 const bot = new TelegramBot(TOKEN, { 
   webHook: {
-    port: process.env.PORT || 5000
+    port: process.env.PORT || 8080
   }
 });
 bot.setWebHook(`${URL}${TOKEN}`);
