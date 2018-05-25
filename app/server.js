@@ -1,10 +1,10 @@
 const ENV = process.env.NODE_ENV || 'development';
-if (ENV == 'development') require('dotenv').config();
 
 const TOKEN = process.env.TG_BOT_TOKEN;
 const URL = process.env.URL;
 
 const msgs = require('./messages');
+const keyboard = require('./keyboard');
 
 const Promise = require("bluebird");
 const axios = require('axios');
@@ -38,53 +38,50 @@ bot.setWebHook(`${URL}${TOKEN}`);
 // Save all needed dependencies to ctx
 const ctx = { logger, redis, bot, axios }
 
-const { rings, memorizeGroup, link, schedule, locations } = require('./handlers')(ctx);
+const { rings, memorizeGroup, link, schedule } = require('./handlers')(ctx);
 const { currentWeek } = require('./schedule')(ctx);
 
-// Save request
+// Logging
 bot.on('message', (msg) => {
-  const visit = new Visit({ telegram_id: msg.from.id, message: msg.text });
-  visit.save();
   logger.info(`From: ${msg.from.id}:${msg.from.username}; Message: ${msg.text}`);
 });
 
 // Start bot
 bot.onText(/\/start/, (msg, match) => {
-  bot.sendMessage(msg.chat.id, msgs.desc);
+  bot.sendMessage(msg.chat.id, msgs.help, {
+    parse_mode: 'html',
+    reply_markup: keyboard.standardKeyboard
+  });
 });
 
 // Help
-bot.onText(/^\/?(help|помощь)$/i, (msg, match) => {
+bot.onText(/^\/(help|помощь)$/i, (msg, match) => {
   bot.sendMessage(msg.chat.id, msgs.help, { parse_mode: 'HTML' });
 });
 
 // Rings
-bot.onText(/^\/?(r|rings|з|звонки)$/i, (msg, match) => {
+bot.onText(/^\/звонки$/i, (msg, match) => {
   rings(msg, match);
 });
 
 // Week
-bot.onText(/^\/?(w|week|н|неделя)$/i, (msg, match) => {
+bot.onText(/^\/неделя$/i, (msg, match) => {
   bot.sendMessage(msg.chat.id, `${currentWeek(new Date())} неделя`);
 });
 
 // Memorize group
-bot.onText(/^\/?(g|group|г|группа) (.*)$/i, (msg, match) => {
+bot.onText(/^\/группа (.*)$/i, (msg, match) => {
   memorizeGroup(msg, match);
 });
 
 // Schedule url
-bot.onText(/^\/?(url|u|ссылка|с)$/i, (msg, match) => {
+bot.onText(/^\/ссылка$/i, (msg, match) => {
   link(msg, match);
 });
 
 // Schedule
-bot.onText(/^\/?(s|schedule|р|расписание)$/i, (msg, match) => {
+bot.onText(/^\/расписание$/i, (msg, match) => {
   schedule(msg);
-});
-
-bot.onText(/^\/?(where|где) ?(\d*) ?(корпус)?$/i, (msg, match) => {
-  locations(msg, match);
 });
 
 bot.on('callback_query', function (msg) {
