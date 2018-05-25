@@ -1,7 +1,43 @@
-const BASE_API = process.env.BASE_API;
-
 const dateHelper = require('./helpers/date');
 const timediff = require('timediff');
+
+const BASE_API = process.env.BASE_API;
+
+function parseDate(date) {
+  let day = Number.parseInt(date.slice(0, 2))
+  let month = Number.parseInt(date.slice(2, 4))
+  let year = Number.parseInt(date.slice(4))
+
+  return [day, month, year]
+}
+
+function getCurrentDay(firstDate, secondDate) {
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+  const OFFSET_MSK = 10800000
+  const MODULO = 1209600000
+  const DAY_IN_MILLISEC = 24 * 3600 * 1000
+
+  const [fDay, fMonth, fYear] = parseDate(firstDate)
+  const [sDay, sMonth, sYear] = parseDate(secondDate)
+
+  firstDate = Date.parse(`${fDay} ${monthNames[fMonth - 1]} ${fYear} 00:00:00 +0300`)
+  secondDate = Date.parse(`${sDay} ${monthNames[sMonth - 1]} ${sYear} 00:00:00 +0300`)
+
+  const currentDate = Date.now() + OFFSET_MSK
+
+  const difference = ((currentDate - firstDate + MODULO) % MODULO) / DAY_IN_MILLISEC >> 0
+  const cWeek = Math.abs((difference / 7) >> 0)
+  const cDay = difference % 7
+
+  if (cWeek > 1) {
+    cWeek = (cWeek + 1) % 2
+  }
+  if (cDay > 6) {
+    cDay = (cDay + 1) % 6
+    cWeek = (cWeek + 1) % 2
+  }
+  return [cWeek, cDay]
+}
 
 module.exports = function(ctx) {
   const module = {};
@@ -9,18 +45,15 @@ module.exports = function(ctx) {
 
   const { bot, redis, logger, axios } = ctx;
 
-  module.rings = function(onlyStart) {
-    onlyStart = onlyStart || false;
+  module.getCurrentDay = getCurrentDay;
+
+  module.getRings = () => {
     const rings = require('./rings.json')
 
     return new Promise((resolve, reject) => {
       const times = [];
       rings.forEach((v, i) => {
-        if (onlyStart){
-          times.push(`${i + 1}) ${v.start}`);
-        } else {
           times.push(`${i + 1}) ${v.start}-${v.end}`);
-        }
       });
       resolve(times);
     });
@@ -53,39 +86,30 @@ module.exports = function(ctx) {
       })
   };
 
-  module.schedule = function(groupId, date, nextDay) {
+  module.getSchedule = (groupId, date, nextDay) => {
     nextDay = nextDay || 0;
     nextDay = parseInt(nextDay);
     date.setDate(date.getDate() + nextDay);
     date.setHours(date.getHours() + 3); // +03
-    return redis.getAsync(`cache:schedule:${groupId}`)
+    return axios.get(`${BASE_API}/schedule/${groupId}/${process.env.SEASON}`)
+      .then(res => res.data)
       .then(schedule => {
-        if (schedule) {
-          return JSON.parse(schedule);
-        }
-        return axios.get(`${BASE_API}/schedule/${groupId}/${process.env.SEASON}`).then(res => {
-          return res.data;
-        });
-      })
-      .then(schedule => {
-        redis.set(`cache:schedule:${groupId}`, JSON.stringify(schedule));
-        redis.expireat(`cache:schedule:${groupId}`, dateHelper.nextDayTimestamp());
-        let curWeekNumber = module.currentWeek(date) - 1;
-        let curDayNumber = (date.getDay() + 6) % 7;
-        if (curDayNumber == SUNDAY) {
-          date.setDate(date.getDate() + 1);
-          curDayNumber = 0;
-          curWeekNumber = (curWeekNumber + 1) % 2;
-        }
-        const curWeek = schedule.weeks[curWeekNumber];
-        const cleaningCurDay = curWeek[curDayNumber].map((el) => {
-          let mapped = el.replace("\r", ' ')
+        const { weeks, _, date_range } = schedule
+        const [ cWeek, cDay ] = getCurrentDay(date_range[0], date_range[1])
+
+        const curWeek = schedule.weeks[cWeek];
+        const cleaningCurDay = weeks[cWeek][cDay].map(
+          item => item.replace("\r", ' ')
             .replace(/Чтение ?лекций/im, 'Лек.')
             .replace(/Проведение ?лабораторных ?занятий/im, 'Лаб.')
-            .replace(/Проведение ?практических ?занятий,? ?семинаров/im, 'Пр.');
-          return mapped.replace(/(.+-\d{4}-\d{2}-\d{2}, )/im, '');
-        });
-        return { day: cleaningCurDay, date: date, groupId };
+            .replace(/Проведение ?практических ?занятий,? ?семинаров/im, 'Пр.')
+            .replace(/(.+-\d{4}-\d{2}-\d{2}, )/im, '')
+        );
+        return {
+          day: cleaningCurDay,
+          date: date,
+          groupId
+        };
       });
   };
 

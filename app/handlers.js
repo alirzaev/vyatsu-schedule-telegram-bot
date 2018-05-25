@@ -1,16 +1,15 @@
 const msgs = require('./messages');
 const dateHelper = require('./helpers/date');
-const buildings = require('./buildings.json');
 
 module.exports = function(ctx) {
-  const { rings, detectGroup, schedule } = require('./schedule')(ctx);
+  const { getRings, detectGroup, getSchedule } = require('./schedule')(ctx);
 
   const module = {};
 
   const { bot, redis, logger } = ctx;
 
-  module.rings = function(msg, match) {
-    rings().then(times => {
+  module.rings = (msg, match) => {
+    getRings().then(times => {
       bot.sendMessage(msg.chat.id, `Звонки:\n${times.join("\n")}`);
     }).catch(err => {
       logger.error(err);
@@ -18,7 +17,7 @@ module.exports = function(ctx) {
     });
   };
 
-  module.memorizeGroup = function(msg, match) {
+  module.memorizeGroup = (msg, match) => {
     const groupName = match[2];
 
     if (!groupName) {
@@ -43,9 +42,11 @@ module.exports = function(ctx) {
       });
   };
 
-  module.link = function(msg, match) {
+  module.link = (msg, match) => {
     redis.getAsync(msg.from.id).then(groupId => {
-      if (!groupId) throw 'Group id not found';
+      if (!groupId) {
+        throw 'Group id not found';
+      }
       bot.sendMessage(msg.chat.id, `https://vyatsuschedule.herokuapp.com/mobile/${groupId}/${process.env.SEASON}`);
     }).catch(err => {
       logger.error(err);
@@ -53,12 +54,15 @@ module.exports = function(ctx) {
     });
   };
 
-  module.schedule = function(msg, date, nextDay) {
+  module.schedule = (msg, date, nextDay) => {
     date = date || new Date();
     redis.getAsync(msg.from.id)
       .then(groupId => {
-        if (!groupId) throw 'Group id not found';
-        return Promise.all([rings(true), schedule(groupId, date, nextDay)]);
+        if (!groupId) {
+          throw 'Group id not found';
+        }
+
+        return Promise.all([getRings(), getSchedule(groupId, date, nextDay)]);
       })
       .then(values => {
         const rings = values[0];
@@ -69,20 +73,13 @@ module.exports = function(ctx) {
             answer.push(`*${v} >* ${schedule.day[i]}`);
           }
         });
-        const keyboard = { 
-          inline_keyboard: [
-            [
-              { 
-                text: 'След. день',
-                callback_data: JSON.stringify({ t: 'n', d: schedule.date.toDateString(), gid: schedule.groupId })
-              }
-            ]
-          ]
-        };
+        
         bot.sendMessage(
           msg.chat.id,
-          `Расписание (${schedule.date.toLocaleDateString()}, ${dateHelper.dayName(schedule.date)}):\n${answer.join("\n")}`,
-          { reply_markup: keyboard, parse_mode: 'Markdown' }
+          `Расписание (${schedule.date.getDate() + 1}.${schedule.date.getMonth() + 1}, ${dateHelper.dayName(schedule.date)}):\n${answer.join("\n")}`,
+          {
+            parse_mode: 'Markdown'
+          }
         );
       })
       .catch(err => {

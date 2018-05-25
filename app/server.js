@@ -1,24 +1,20 @@
-const ENV = process.env.NODE_ENV || 'development';
+const Redis = require('redis');
+const logger = require('log4js').getLogger();
+const TelegramBot = require('node-telegram-bot-api');
+const Promise = require("bluebird");
+const axios = require('axios');
 
+const ENV = process.env.NODE_ENV || 'development';
 const TOKEN = process.env.TG_BOT_TOKEN;
 const URL = process.env.URL;
 
 const msgs = require('./messages');
 const keyboard = require('./keyboard');
 
-const Promise = require("bluebird");
-const axios = require('axios');
-
 // Logger
-const logger = require('log4js').getLogger();
 logger.level = 'debug';
 
-// Mongoose
-require('mongoose').connect(process.env.MONGODB_URI);
-const Visit = require('./models/Visit');
-
 // Redis
-const Redis = require('redis');
 Promise.promisifyAll(Redis.RedisClient.prototype);
 Promise.promisifyAll(Redis.Multi.prototype);
 const redis = Redis.createClient(process.env.REDIS_URL);
@@ -27,7 +23,6 @@ redis.on("error", function (err) {
 });
 
 // Telegram bot
-const TelegramBot = require('node-telegram-bot-api');
 const bot = new TelegramBot(TOKEN, { 
   webHook: {
     port: process.env.PORT || 8080
@@ -37,7 +32,6 @@ bot.setWebHook(`${URL}${TOKEN}`);
 
 // Save all needed dependencies to ctx
 const ctx = { logger, redis, bot, axios }
-
 const { rings, memorizeGroup, link, schedule } = require('./handlers')(ctx);
 const { currentWeek } = require('./schedule')(ctx);
 
@@ -55,32 +49,27 @@ bot.onText(/\/start/, (msg, match) => {
 });
 
 // Help
-bot.onText(/^\/(help|помощь)$/i, (msg, match) => {
+bot.onText(/^\/?(help|помощь)$/i, (msg, match) => {
   bot.sendMessage(msg.chat.id, msgs.help, { parse_mode: 'HTML' });
 });
 
 // Rings
-bot.onText(/^\/звонки$/i, (msg, match) => {
+bot.onText(/^Звонки$/i, (msg, match) => {
   rings(msg, match);
 });
 
-// Week
-bot.onText(/^\/неделя$/i, (msg, match) => {
-  bot.sendMessage(msg.chat.id, `${currentWeek(new Date())} неделя`);
-});
-
 // Memorize group
-bot.onText(/^\/группа (.*)$/i, (msg, match) => {
+bot.onText(/^Выбрать группу$/i, (msg, match) => {
   memorizeGroup(msg, match);
 });
 
 // Schedule url
-bot.onText(/^\/ссылка$/i, (msg, match) => {
+bot.onText(/^Посмотреть на сайте$/i, (msg, match) => {
   link(msg, match);
 });
 
 // Schedule
-bot.onText(/^\/расписание$/i, (msg, match) => {
+bot.onText(/^Расписание$/i, (msg, match) => {
   schedule(msg);
 });
 
