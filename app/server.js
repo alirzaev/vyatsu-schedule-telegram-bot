@@ -32,48 +32,47 @@ bot.setWebHook(`${URL}${TOKEN}`);
 
 // Save all needed dependencies to ctx
 const ctx = { logger, redis, bot, axios }
-const { rings, chooseGroup, link, schedule, processCallback } = require('./handlers')(ctx);
-const { currentWeek } = require('./schedule')(ctx);
+const { rings, chooseGroup, link, schedule, processCallback } = require('./handlers')(ctx)
 const groupsChooser = require('./groupsChooser')(ctx)
 
 // Logging
 bot.on('message', (msg) => {
-  logger.info(`From: ${msg.from.id}:${msg.from.username}; Message: ${msg.text}`);
-});
+  logger.info(`From: ${msg.from.id}:${msg.from.username}; Message: ${msg.text}`)
+})
 
 // Start bot
 bot.onText(/\/start/, (msg, match) => {
   bot.sendMessage(msg.chat.id, msgs.help, {
     parse_mode: 'html',
     reply_markup: keyboard.standardKeyboard
-  });
-});
+  })
+})
 
 // Help
 bot.onText(/^\/?(help|помощь)$/i, (msg, match) => {
   bot.sendMessage(msg.chat.id, msgs.help, { parse_mode: 'HTML' });
-});
+})
 
 // Rings
 bot.onText(/^Звонки$/i, (msg, match) => {
   rings(msg, match);
-});
+})
 
 // Memorize group
 bot.onText(/^Выбрать группу$/i, (msg, match) => {
   chooseGroup(msg, match)
-});
+})
 
 // Schedule url
 bot.onText(/^Посмотреть на сайте$/i, (msg, match) => {
-  link(msg, match);
-});
+  link(msg)
+})
 
 // Schedule
 bot.onText(/^Расписание$/i, (msg, match) => {
-  schedule(msg);
-});
+  schedule(msg)
+})
 
 bot.on('callback_query', function (msg) {
   processCallback(msg)
-});
+})

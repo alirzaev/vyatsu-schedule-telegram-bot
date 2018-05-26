@@ -1,23 +1,24 @@
-const msgs = require('./messages');
+const msgs = require('./messages')
 const { buildKeyboard, standardKeyboard } = require('./keyboard')
-const dateHelper = require('./helpers/date');
+const dateHelper = require('./helpers/date')
 
 module.exports = function (ctx) {
-    const { getRings, detectGroup, getSchedule } = require('./schedule')(ctx);
+    const { getRings, getSchedule } = require('./schedule')
     const groupsChooser = require('./groupsChooser')(ctx)
 
-    const module = {};
+    const module = {}
 
-    const { bot, redis, logger } = ctx;
+    const { bot, redis, logger } = ctx
 
     module.rings = (msg, match) => {
-        getRings().then(times => {
-            bot.sendMessage(msg.chat.id, `Звонки:\n${times.join("\n")}`);
-        }).catch(err => {
-            logger.error(err);
-            bot.sendMessage(msg.chat.id, msgs.error);
-        });
-    };
+        try {
+            const rings = getRings()
+            bot.sendMessage(msg.chat.id, `Звонки:\n${rings.join("\n")}`)
+        } catch (err) {
+            logger.error(err)
+            bot.sendMessage(msg.chat.id, msgs.error)
+        }
+    }
 
     module.chooseGroup = (msg, match) => {
         const buttons = groupsChooser.getFaculties().map(faculty => {
@@ -40,76 +41,49 @@ module.exports = function (ctx) {
         })
     }
 
-    module.memorizeGroup = (msg, match) => {
-        const groupName = match[2];
+    module.link = async (msg) => {
+        const groupId = await redis.getAsync(msg.from.id)
 
-        if (!groupName) {
-            bot.sendMessage(msg.chat.id, msgs.group.forgotName);
-            return;
+        if (!groupId) {
+            bot.sendMessage(msg.chat.id, msgs.forgotStudent)
+        } else {
+            bot.sendMessage(msg.chat.id, `https://vyatsuschedule.herokuapp.com/mobile/${groupId}/${process.env.SEASON}`)
         }
+    }
 
-        detectGroup(groupName)
-            .then(groups => {
-                if (groups.length == 0) {
-                    bot.sendMessage(msg.chat.id, msgs.group.notFound);
-                } else if (groups.length > 1) {
-                    bot.sendMessage(msg.chat.id, `Список похожих групп:\n${groups.map(g => g.name).join("\n")}`);
-                } else {
-                    redis.set(msg.from.id, groups[0].id);
-                    bot.sendMessage(msg.chat.id, `Я запомнил, что вы учитесь в группе *${groups[0].name}* ;)`, { parse_mode: 'Markdown' });
+    module.schedule = async (msg) => {
+        const groupId = await redis.getAsync(msg.from.id)
+
+        if (!groupId) {
+            bot.sendMessage(msg.chat.id, msgs.forgotStudent)
+            return
+        }
+        try {
+            const rings = getRings()
+            const { day, date } = await getSchedule(groupId)
+            
+            const answer = []
+            rings.forEach((v, i) => {
+                if (day[i]) {
+                    answer.push(`*${v} >* ${day[i]}`)
                 }
             })
-            .catch(err => {
-                logger.error(err);
-                bot.sendMessage(msg.chat.id, msgs.error);
-            });
-    };
 
-    module.link = (msg, match) => {
-        redis.getAsync(msg.from.id).then(groupId => {
-            if (!groupId) {
-                throw 'Group id not found';
-            }
-            bot.sendMessage(msg.chat.id, `https://vyatsuschedule.herokuapp.com/mobile/${groupId}/${process.env.SEASON}`);
-        }).catch(err => {
-            logger.error(err);
-            bot.sendMessage(msg.chat.id, msgs.forgotStudent);
-        });
-    };
+            const monthDay = date.getDate()
+            const month = date.getMonth() + 1
 
-    module.schedule = (msg, date, nextDay) => {
-        date = date || new Date();
-        redis.getAsync(msg.from.id)
-            .then(groupId => {
-                if (!groupId) {
-                    throw 'Group id not found';
+            bot.sendMessage(
+                msg.chat.id,
+                `Расписание (${monthDay}.${month}, ${dateHelper.dayName(date)}):\n${answer.join("\n")}`,
+                {
+                    parse_mode: 'Markdown'
                 }
-
-                return Promise.all([getRings(), getSchedule(groupId, date, nextDay)]);
-            })
-            .then(values => {
-                const rings = values[0];
-                const schedule = values[1];
-                const answer = [];
-                rings.forEach((v, i) => {
-                    if (schedule.day[i]) {
-                        answer.push(`*${v} >* ${schedule.day[i]}`);
-                    }
-                });
-
-                bot.sendMessage(
-                    msg.chat.id,
-                    `Расписание (${schedule.date.getDate()}.${schedule.date.getMonth() + 1}, ${dateHelper.dayName(schedule.date)}):\n${answer.join("\n")}`,
-                    {
-                        parse_mode: 'Markdown'
-                    }
-                );
-            })
-            .catch(err => {
-                logger.error(err);
-                bot.sendMessage(msg.chat.id, msgs.forgotStudent);
-            });
-    };
+            )
+        } catch (err) {
+            bot.sendMessage(msg.chat.id, msgs.error)
+            logger.error(err)
+        }
+    }
 
     // t - type
     module.processCallback = (msg) => {
