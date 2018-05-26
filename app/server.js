@@ -10,7 +10,6 @@ const URL = process.env.URL;
 
 const msgs = require('./messages');
 const keyboard = require('./keyboard');
-const groupChooser = require('./groupsChooser')
 
 // Logger
 logger.level = 'debug';
@@ -33,8 +32,9 @@ bot.setWebHook(`${URL}${TOKEN}`);
 
 // Save all needed dependencies to ctx
 const ctx = { logger, redis, bot, axios }
-const { rings, memorizeGroup, link, schedule, processCallback } = require('./handlers')(ctx);
+const { rings, chooseGroup, link, schedule, processCallback } = require('./handlers')(ctx);
 const { currentWeek } = require('./schedule')(ctx);
+const groupsChooser = require('./groupsChooser')(ctx)
 
 // Logging
 bot.on('message', (msg) => {
@@ -61,21 +61,7 @@ bot.onText(/^Звонки$/i, (msg, match) => {
 
 // Memorize group
 bot.onText(/^Выбрать группу$/i, (msg, match) => {
-  const b = {
-    text: 'spec',
-    callback_data: JSON.stringify({
-        t: 'g', // choose group
-        a: 'f', // select faculty
-        d: {
-            'fi': 0,
-        }
-    })
-  }
-  bot.sendMessage(msg.chat.id, 'Выберите факультет', {
-    reply_markup: {
-        inline_keyboard: [[b]]
-    },
-})  
+  chooseGroup(msg, match)
 });
 
 // Schedule url
