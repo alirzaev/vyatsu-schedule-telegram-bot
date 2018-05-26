@@ -1,34 +1,34 @@
-const Redis = require('redis');
-const logger = require('log4js').getLogger();
-const TelegramBot = require('node-telegram-bot-api');
-const Promise = require("bluebird");
-const axios = require('axios');
+const Redis = require('redis')
+const logger = require('log4js').getLogger()
+const TelegramBot = require('node-telegram-bot-api')
+const Promise = require("bluebird")
+const axios = require('axios')
 
-const ENV = process.env.NODE_ENV || 'development';
-const TOKEN = process.env.TG_BOT_TOKEN;
-const URL = process.env.URL;
+const ENV = process.env.NODE_ENV || 'development'
+const TOKEN = process.env.TG_BOT_TOKEN
+const URL = process.env.URL
 
-const msgs = require('./messages');
-const keyboard = require('./keyboard');
+const msgs = require('./messages')
+const keyboard = require('./keyboard')
 
 // Logger
-logger.level = 'debug';
+logger.level = 'debug'
 
 // Redis
-Promise.promisifyAll(Redis.RedisClient.prototype);
-Promise.promisifyAll(Redis.Multi.prototype);
-const redis = Redis.createClient(process.env.REDIS_URL);
+Promise.promisifyAll(Redis.RedisClient.prototype)
+Promise.promisifyAll(Redis.Multi.prototype)
+const redis = Redis.createClient(process.env.REDIS_URL)
 redis.on("error", function (err) {
-  logger.error("Error " + err);
-});
+  logger.error("Error " + err)
+})
 
 // Telegram bot
 const bot = new TelegramBot(TOKEN, { 
   webHook: {
     port: process.env.PORT || 8080
   }
-});
-bot.setWebHook(`${URL}${TOKEN}`);
+})
+bot.setWebHook(`${URL}${TOKEN}`)
 
 // Save all needed dependencies to ctx
 const ctx = { logger, redis, bot, axios }
@@ -50,12 +50,12 @@ bot.onText(/\/start/, (msg, match) => {
 
 // Help
 bot.onText(/^\/?(help|помощь)$/i, (msg, match) => {
-  bot.sendMessage(msg.chat.id, msgs.help, { parse_mode: 'HTML' });
+  bot.sendMessage(msg.chat.id, msgs.help, { parse_mode: 'HTML' })
 })
 
 // Rings
 bot.onText(/^Звонки$/i, (msg, match) => {
-  rings(msg, match);
+  rings(msg, match)
 })
 
 // Memorize group

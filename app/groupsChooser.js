@@ -169,15 +169,15 @@ function commandOnSelectGroup(data, userId, chatId, ctx) {
 }
 
 module.exports = function (ctx) {
-    const { bot, redis, logger, axios } = ctx;
+    const { bot, redis, logger, axios } = ctx
     axios.get(`${BASE_API}/v2/groups/by_faculty.json`)
         .then(res => res.data.forEach((item, ind) => {
-            const { name, index, info } = getFacultyInfo(item, ind);
+            const { name, index, info } = getFacultyInfo(item, ind)
 
             groupsInfo.set(index, new Map([
                 ['info', info],
                 ['name', name]
-            ]));
+            ]))
         }))
     
     // a - action
@@ -185,19 +185,19 @@ module.exports = function (ctx) {
     module.processChoosing = (data, userId, chatId) => {
         switch (data.a) {
             case 0: //faculty was selected
-                commandOnSelectFaculty(data, userId, chatId, ctx);
-                break;
+                commandOnSelectFaculty(data, userId, chatId, ctx)
+                break
             case 1: //spec was selected
                 commandOnSelectSpec(data, userId, chatId, ctx)
-                break;
+                break
             case 2: //course was selected
                 commandOnSelectCourse(data, userId, chatId, ctx)
-                break;
+                break
             case 3: //group was selected
                 commandOnSelectGroup(data, userId, chatId, ctx)
-                break;
+                break
         }
-    };
+    }
 
     module.getFaculties = () => {
         const faculties = []
@@ -210,5 +210,5 @@ module.exports = function (ctx) {
         return faculties
     }
 
-    return module;
+    return module
 }

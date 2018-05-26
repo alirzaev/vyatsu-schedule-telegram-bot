@@ -97,5 +97,5 @@ module.exports = function (ctx) {
         }
     }
 
-    return module;
-};
+    return module
+}
