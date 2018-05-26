@@ -64,7 +64,7 @@ bot.onText(/^Выбрать группу$/i, (msg, match) => {
 })
 
 // Schedule url
-bot.onText(/^Посмотреть на сайте$/i, (msg, match) => {
+bot.onText(/^На сайте$/i, (msg, match) => {
   link(msg)
 })
 
