@@ -47,7 +47,7 @@ module.exports = function (ctx) {
         if (!groupId) {
             bot.sendMessage(msg.chat.id, msgs.forgotStudent)
         } else {
-            bot.sendMessage(msg.chat.id, `https://vyatsuschedule.herokuapp.com/mobile/${groupId}/${process.env.SEASON}`)
+            bot.sendMessage(msg.chat.id, `https://vyatsuschedule.ru/mobile/${groupId}/${process.env.SEASON}`)
         }
     }
 
