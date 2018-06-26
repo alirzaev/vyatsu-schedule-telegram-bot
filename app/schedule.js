@@ -54,7 +54,7 @@ module.exports = {
         const date = new Date()
         date.setHours(date.getHours() + 3) // +03
 
-        const res = await axios.get(`${BASE_API}/schedule/${groupId}/${process.env.SEASON}`)
+        const res = await axios.get(`${BASE_API}/v1/schedule/${groupId}/${process.env.SEASON}`)
 
         const { weeks, date_range } = res.data
         const [cWeek, cDay] = getCurrentDay(date_range[0], date_range[1])

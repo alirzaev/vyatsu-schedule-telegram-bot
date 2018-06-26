@@ -43,33 +43,32 @@ bot.on('message', (msg) => {
 // Start bot
 bot.onText(/\/start/, (msg, match) => {
   bot.sendMessage(msg.chat.id, msgs.help, {
-    parse_mode: 'html',
-    reply_markup: keyboard.standardKeyboard
+    parse_mode: 'html'
   })
 })
 
 // Help
-bot.onText(/^\/?(help|помощь)$/i, (msg, match) => {
+bot.onText(/^\/help$/i, (msg, match) => {
   bot.sendMessage(msg.chat.id, msgs.help, { parse_mode: 'HTML' })
 })
 
 // Rings
-bot.onText(/^Звонки$/i, (msg, match) => {
+bot.onText(/^\/rings$/i, (msg, match) => {
   rings(msg, match)
 })
 
 // Memorize group
-bot.onText(/^Выбрать группу$/i, (msg, match) => {
+bot.onText(/^\/group$/i, (msg, match) => {
   chooseGroup(msg, match)
 })
 
 // Schedule url
-bot.onText(/^На сайте$/i, (msg, match) => {
+bot.onText(/^\/link$/i, (msg, match) => {
   link(msg)
 })
 
 // Schedule
-bot.onText(/^Расписание$/i, (msg, match) => {
+bot.onText(/^\/schedule$/i, (msg, match) => {
   schedule(msg)
 })
 

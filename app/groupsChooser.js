@@ -170,7 +170,7 @@ function commandOnSelectGroup(data, userId, chatId, ctx) {
 
 module.exports = function (ctx) {
     const { bot, redis, logger, axios } = ctx
-    axios.get(`${BASE_API}/v2/groups/by_faculty.json`)
+    axios.get(`${BASE_API}/v2/groups/by_faculty`)
         .then(res => res.data.forEach((item, ind) => {
             const { name, index, info } = getFacultyInfo(item, ind)
 
