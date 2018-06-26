@@ -1,4 +1,7 @@
+const bot = require('./configs/bot');
+const axios = require('axios');
 const { buildKeyboard } = require('./keyboard');
+const userPreferences = require('./models/UserPreferences');
 
 const BASE_API = process.env.BASE_API;
 
@@ -56,7 +59,7 @@ function getFacultyInfo(facultyItem, ind) {
     }
 }
 
-function commandOnSelectFaculty(data, userId, chatId, ctx) {
+async function commandOnSelectFaculty(data, userId, chatId) {
     const facultyIndex = data.d.f; // f - faculty index
     const specs = groupsInfo.get(facultyIndex).get('info');
 
@@ -75,7 +78,7 @@ function commandOnSelectFaculty(data, userId, chatId, ctx) {
         })
     }
     
-    ctx.bot.sendMessage(chatId, 'Выберите специальность', {
+    await bot.sendMessage(chatId, 'Выберите специальность', {
         reply_markup: {
             inline_keyboard: buildKeyboard(buttons, 3),
             resize_keyboard: true
@@ -83,7 +86,7 @@ function commandOnSelectFaculty(data, userId, chatId, ctx) {
     })
 }
 
-function commandOnSelectSpec(data, userId, chatId, ctx) {
+async function commandOnSelectSpec(data, userId, chatId) {
     const facultyIndex = data.d.f;
     const spec = data.d.s;
     const courses = groupsInfo
@@ -108,7 +111,7 @@ function commandOnSelectSpec(data, userId, chatId, ctx) {
         })
     }
 
-    ctx.bot.sendMessage(chatId, 'Выберите курс', {
+    await bot.sendMessage(chatId, 'Выберите курс', {
         reply_markup: {
             inline_keyboard: buildKeyboard(buttons, 2),
             resize_keyboard: true
@@ -116,7 +119,7 @@ function commandOnSelectSpec(data, userId, chatId, ctx) {
     })
 }
 
-function commandOnSelectCourse(data, userId, chatId, ctx) {
+async function commandOnSelectCourse(data, userId, chatId) {
     const facultyIndex = data.d.f;
     const spec = data.d.s;
     const course = data.d.c;
@@ -143,7 +146,7 @@ function commandOnSelectCourse(data, userId, chatId, ctx) {
         }
     });
 
-    ctx.bot.sendMessage(chatId, 'Выберите группу', {
+    await bot.sendMessage(chatId, 'Выберите группу', {
         reply_markup: {
             inline_keyboard: buildKeyboard(buttons, 2),
             resize_keyboard: true
@@ -151,7 +154,7 @@ function commandOnSelectCourse(data, userId, chatId, ctx) {
     })
 }
 
-function commandOnSelectGroup(data, userId, chatId, ctx) {
+async function commandOnSelectGroup(data, userId, chatId) {
     const facultyIndex = data.d.f;
     const spec = data.d.s;
     const course = data.d.c;
@@ -163,13 +166,22 @@ function commandOnSelectGroup(data, userId, chatId, ctx) {
         .get(spec)
         .get(course)
         .filter(group => group.id === groupId);
-    
-    ctx.redis.set(userId, groupId);
-    ctx.bot.sendMessage(chatId, `Ваша группа: ${group.name}`)
+
+    await userPreferences.replaceOne({
+        telegram_id: userId
+    }, {
+        telegram_id: userId,
+        group_id: groupId
+    }, {
+        upsert: true
+    });
+
+    await bot.sendMessage(chatId, `Ваша группа: ${group.name}`)
 }
 
-module.exports = function (ctx) {
-    const { bot, redis, logger, axios } = ctx;
+module.exports = () => {
+    const module = {};
+
     axios.get(`${BASE_API}/v2/groups/by_faculty`)
         .then(res => res.data.forEach((item, ind) => {
             const { name, index, info } = getFacultyInfo(item, ind);
@@ -182,26 +194,26 @@ module.exports = function (ctx) {
     
     // a - action
     // d - data (dict)
-    module.processChoosing = (data, userId, chatId) => {
+    module.processChoosing = async (data, userId, chatId) => {
         switch (data.a) {
             case 0: //faculty was selected
-                commandOnSelectFaculty(data, userId, chatId, ctx);
+                await commandOnSelectFaculty(data, userId, chatId);
                 break;
             case 1: //spec was selected
-                commandOnSelectSpec(data, userId, chatId, ctx);
+                await commandOnSelectSpec(data, userId, chatId);
                 break;
             case 2: //course was selected
-                commandOnSelectCourse(data, userId, chatId, ctx);
+                await commandOnSelectCourse(data, userId, chatId);
                 break;
             case 3: //group was selected
-                commandOnSelectGroup(data, userId, chatId, ctx);
+                await commandOnSelectGroup(data, userId, chatId);
                 break
         }
     };
 
     module.getFaculties = () => {
         const faculties = [];
-        for ([facultyIndex, facultyInfo] of groupsInfo) {
+        for (const [facultyIndex, facultyInfo] of groupsInfo) {
             faculties.push({
                 index: facultyIndex,
                 name: facultyInfo.get('name')

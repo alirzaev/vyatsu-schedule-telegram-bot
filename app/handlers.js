@@ -1,26 +1,26 @@
 const msgs = require('./messages');
-const { buildKeyboard} = require('./keyboard');
+const bot = require('./configs/bot');
+const {buildKeyboard} = require('./keyboard');
 const dateHelper = require('./helpers/date');
+const userPreferences = require('./models/UserPreferences');
+const {getRings, getSchedule} = require('./schedule');
+const groupsChooser = require('./groupsChooser')();
+const {getLogger} = require('./configs/logging');
 
-module.exports = function (ctx) {
-    const { getRings, getSchedule } = require('./schedule');
-    const groupsChooser = require('./groupsChooser')(ctx);
+const logger = getLogger('handler');
 
-    const module = {};
-
-    const { bot, redis, logger } = ctx;
-
-    module.rings = (msg) => {
+module.exports = {
+    rings: async (msg) => {
         try {
             const rings = getRings();
-            bot.sendMessage(msg.chat.id, `Звонки:\n${rings.join("\n")}`)
+            await bot.sendMessage(msg.chat.id, `Звонки:\n${rings.join("\n")}`)
         } catch (err) {
             logger.error(err);
-            bot.sendMessage(msg.chat.id, msgs.error)
+            await bot.sendMessage(msg.chat.id, msgs.error)
         }
-    };
+    },
 
-    module.chooseGroup = (msg) => {
+    chooseGroup: async (msg) => {
         const buttons = groupsChooser.getFaculties().map(faculty => {
             return {
                 text: faculty.name,
@@ -34,34 +34,40 @@ module.exports = function (ctx) {
             }
         });
 
-        bot.sendMessage(msg.chat.id, 'Выберите факультет', {
+        await bot.sendMessage(msg.chat.id, 'Выберите факультет', {
             reply_markup: {
                 inline_keyboard: buildKeyboard(buttons, 2)
             },
         })
-    };
+    },
 
-    module.link = async (msg) => {
-        const groupId = await redis.getAsync(msg.from.id);
+    link: async (msg) => {
+        const preferences = await await userPreferences.findOne({
+            telegram_id: msg.from.id
+        });
 
-        if (!groupId) {
-            bot.sendMessage(msg.chat.id, msgs.forgotStudent)
+        if (!preferences) {
+            await bot.sendMessage(msg.chat.id, msgs.forgotStudent)
         } else {
-            bot.sendMessage(msg.chat.id, `https://vyatsuschedule.herokuapp.com/mobile/${groupId}/${process.env.SEASON}`)
+            const groupId = preferences.group_id;
+            await bot.sendMessage(msg.chat.id, `https://vyatsuschedule.ru/#/schedule/${groupId}/${process.env.SEASON}`)
         }
-    };
+    },
 
-    module.schedule = async (msg) => {
-        const groupId = await redis.getAsync(msg.from.id);
+    schedule: async (msg) => {
+        const doc = await userPreferences.findOne({
+            telegram_id: msg.from.id
+        });
 
-        if (!groupId) {
-            bot.sendMessage(msg.chat.id, msgs.forgotStudent);
+        if (!doc) {
+            await bot.sendMessage(msg.chat.id, msgs.forgotStudent);
             return
         }
         try {
+            const groupId = doc.group_id;
             const rings = getRings();
-            const { day, date } = await getSchedule(groupId);
-            
+            const {day, date} = await getSchedule(groupId);
+
             const answer = [];
             rings.forEach((v, i) => {
                 if (day[i]) {
@@ -72,7 +78,7 @@ module.exports = function (ctx) {
             const monthDay = date.getDate();
             const month = date.getMonth() + 1;
 
-            bot.sendMessage(
+            await bot.sendMessage(
                 msg.chat.id,
                 `Расписание (${monthDay}.${month}, ${dateHelper.dayName(date)}):\n${answer.join("\n")}`,
                 {
@@ -80,22 +86,20 @@ module.exports = function (ctx) {
                 }
             )
         } catch (err) {
-            bot.sendMessage(msg.chat.id, msgs.error);
+            await bot.sendMessage(msg.chat.id, msgs.error);
             logger.error(err)
         }
-    };
+    },
 
     // t - type
-    module.processCallback = (msg) => {
+    processCallback: async (msg) => {
         const message = msg.message;
         const userId = msg.from.id;
         const chatId = message.chat.id;
 
         const data = JSON.parse(msg.data);
         if (data.t == 0) { // choose group
-            groupsChooser.processChoosing(data, userId, chatId)
+            await groupsChooser.processChoosing(data, userId, chatId)
         }
-    };
-
-    return module
+    }
 };
