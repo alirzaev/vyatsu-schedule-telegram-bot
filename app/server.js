@@ -1,5 +1,5 @@
 const bot = require('./configs/bot');
-const msgs = require('./messages');
+const msgs = require('./static/messages');
 const database = require('./configs/database');
 const {getLogger} = require('./configs/logging');
 const {rings, chooseGroup, link, schedule, processCallback} = require('./handlers');
