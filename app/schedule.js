@@ -52,12 +52,12 @@ module.exports = {
         const date = new Date();
         date.setHours(date.getHours() + 3); // +03
 
-        const res = await axios.get(`${BASE_API}/v1/schedule/${groupId}/${process.env.SEASON}`);
+        const res = await axios.get(`${BASE_API}/v2/schedule/${groupId}/${process.env.SEASON}`);
 
-        const { weeks, date_range } = res.data;
-        const [cWeek, cDay] = getCurrentDay(date_range[0], date_range[1]);
+        const { weeks, today } = res.data;
+        const {week, dayOfWeek} = today;
 
-        const schedule = weeks[cWeek][cDay].map(
+        const schedule = weeks[week][dayOfWeek].map(
             item => item.replace("\r", ' ')
                 .replace(/Чтение ?лекций/im, 'Лек.')
                 .replace(/Проведение ?лабораторных ?занятий/im, 'Лаб.')
