@@ -1,78 +1,53 @@
-const Redis = require('redis')
-const logger = require('log4js').getLogger()
-const TelegramBot = require('node-telegram-bot-api')
-const Promise = require("bluebird")
-const axios = require('axios')
+const bot = require('./configs/bot');
+const msgs = require('./messages');
+const database = require('./configs/database');
+const {getLogger} = require('./configs/logging');
+const {rings, chooseGroup, link, schedule, processCallback} = require('./handlers');
 
-const ENV = process.env.NODE_ENV || 'development'
-const TOKEN = process.env.TG_BOT_TOKEN
-const URL = process.env.URL
+const logger = getLogger('server');
 
-const msgs = require('./messages')
-const keyboard = require('./keyboard')
-
-// Logger
-logger.level = 'debug'
-
-// Redis
-Promise.promisifyAll(Redis.RedisClient.prototype)
-Promise.promisifyAll(Redis.Multi.prototype)
-const redis = Redis.createClient(process.env.REDIS_URL)
-redis.on("error", function (err) {
-  logger.error("Error " + err)
-})
-
-// Telegram bot
-const bot = new TelegramBot(TOKEN, { 
-  webHook: {
-    port: process.env.PORT || 8080
-  }
-})
-bot.setWebHook(`${URL}${TOKEN}`)
-
-// Save all needed dependencies to ctx
-const ctx = { logger, redis, bot, axios }
-const { rings, chooseGroup, link, schedule, processCallback } = require('./handlers')(ctx)
-const groupsChooser = require('./groupsChooser')(ctx)
+// MongoDB
+database.connect();
 
 // Logging
 bot.on('message', (msg) => {
-  logger.info(`From: ${msg.from.id}:${msg.from.username}; Message: ${msg.text}`)
-})
+    logger.info(`From: ${msg.from.id}:${msg.from.username}; message: ${msg.text}`)
+});
 
 // Start bot
-bot.onText(/\/start/, (msg, match) => {
-  bot.sendMessage(msg.chat.id, msgs.help, {
-    parse_mode: 'html',
-    reply_markup: keyboard.standardKeyboard
-  })
-})
+bot.onText(/\/start/, async (msg) => {
+    await bot.sendMessage(msg.chat.id, msgs.help, {
+        parse_mode: 'html'
+    })
+});
 
 // Help
-bot.onText(/^\/?(help|помощь)$/i, (msg, match) => {
-  bot.sendMessage(msg.chat.id, msgs.help, { parse_mode: 'HTML' })
-})
+bot.onText(/^\/help$/i, async (msg) => {
+    await bot.sendMessage(msg.chat.id, msgs.help, {
+        parse_mode: 'html'
+    })
+});
 
-// Rings
-bot.onText(/^Звонки$/i, (msg, match) => {
-  rings(msg, match)
-})
+// Rings schedule
+bot.onText(/^\/rings$/i, async (msg) => {
+    await rings(msg)
+});
 
 // Memorize group
-bot.onText(/^Выбрать группу$/i, (msg, match) => {
-  chooseGroup(msg, match)
-})
+bot.onText(/^\/group$/i, async (msg) => {
+    await chooseGroup(msg)
+});
 
 // Schedule url
-bot.onText(/^На сайте$/i, (msg, match) => {
-  link(msg)
-})
+bot.onText(/^\/link$/i, async (msg) => {
+    await link(msg)
+});
 
 // Schedule
-bot.onText(/^Расписание$/i, (msg, match) => {
-  schedule(msg)
-})
+bot.onText(/^\/schedule$/i, async (msg) => {
+    await schedule(msg)
+});
 
-bot.on('callback_query', function (msg) {
-  processCallback(msg)
-})
+bot.on('callback_query', async (msg) => {
+    await processCallback(msg)
+});

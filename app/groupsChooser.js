@@ -1,11 +1,14 @@
-const { buildKeyboard } = require('./keyboard')
+const bot = require('./configs/bot');
+const axios = require('axios');
+const { buildKeyboard } = require('./keyboard');
+const userPreferences = require('./models/UserPreferences');
 
-const BASE_API = process.env.BASE_API
+const BASE_API = process.env.BASE_API;
 
-let groupsInfo = new Map()
+let groupsInfo = new Map();
 
 function getFacultyShorthand(facultyName) {
-    const i = facultyName.indexOf('(')
+    const i = facultyName.indexOf('(');
     if (i != -1) {
         return facultyName.slice(0, i).trim()
     } else {
@@ -14,26 +17,26 @@ function getFacultyShorthand(facultyName) {
 }
 
 function getGroupInfo(groupItem) {
-    const groupId = groupItem.id
-    const groupName = groupItem.name
+    const groupId = groupItem.id;
+    const groupName = groupItem.name;
 
-    m = groupName.match(/([А-Яа-я]+)-(\d+)-\d+-\d+/)
-    const spec = m[1].slice(0, -1)
-    const course = m[2].slice(0, 1)
+    m = groupName.match(/([А-Яа-я]+)-(\d+)-\d+-\d+/);
+    const spec = m[1].slice(0, -1);
+    const course = m[2].slice(0, 1);
 
     return [groupId, groupName, spec, course]
 }
 
 function getFacultyInfo(facultyItem, ind) {
-    const facultyName = facultyItem.faculty
-    const facultyShorthand = getFacultyShorthand(facultyName)
-    const facultyIndex = ind
-    const groups = facultyItem.groups
+    const facultyName = facultyItem.faculty;
+    const facultyShorthand = getFacultyShorthand(facultyName);
+    const facultyIndex = ind;
+    const groups = facultyItem.groups;
 
-    const facultyInfo = new Map()
+    const facultyInfo = new Map();
 
     groups.forEach(group => {
-        [groupId, groupName, spec, course] = getGroupInfo(group)
+        [groupId, groupName, spec, course] = getGroupInfo(group);
 
         if (!facultyInfo.has(spec)) {
             facultyInfo.set(spec, new Map())
@@ -47,7 +50,7 @@ function getFacultyInfo(facultyItem, ind) {
             id: groupId,
             name: groupName
         })
-    })
+    });
 
     return {
         name: facultyShorthand,
@@ -56,11 +59,11 @@ function getFacultyInfo(facultyItem, ind) {
     }
 }
 
-function commandOnSelectFaculty(data, userId, chatId, ctx) {
-    const facultyIndex = data.d.f // f - faculty index
-    const specs = groupsInfo.get(facultyIndex).get('info')
+async function commandOnSelectFaculty(data, userId, chatId) {
+    const facultyIndex = data.d.f; // f - faculty index
+    const specs = groupsInfo.get(facultyIndex).get('info');
 
-    const buttons = []
+    const buttons = [];
     for (let spec of specs.keys()) {
         buttons.push({
             text: spec,
@@ -75,7 +78,7 @@ function commandOnSelectFaculty(data, userId, chatId, ctx) {
         })
     }
     
-    ctx.bot.sendMessage(chatId, 'Выберите специальность', {
+    await bot.sendMessage(chatId, 'Выберите специальность', {
         reply_markup: {
             inline_keyboard: buildKeyboard(buttons, 3),
             resize_keyboard: true
@@ -83,15 +86,15 @@ function commandOnSelectFaculty(data, userId, chatId, ctx) {
     })
 }
 
-function commandOnSelectSpec(data, userId, chatId, ctx) {
-    const facultyIndex = data.d.f
-    const spec = data.d.s
+async function commandOnSelectSpec(data, userId, chatId) {
+    const facultyIndex = data.d.f;
+    const spec = data.d.s;
     const courses = groupsInfo
         .get(facultyIndex)
         .get('info')
-        .get(spec)
+        .get(spec);
 
-    const buttons = []
+    const buttons = [];
 
     for (let course of courses.keys()) {
         buttons.push({
@@ -108,7 +111,7 @@ function commandOnSelectSpec(data, userId, chatId, ctx) {
         })
     }
 
-    ctx.bot.sendMessage(chatId, 'Выберите курс', {
+    await bot.sendMessage(chatId, 'Выберите курс', {
         reply_markup: {
             inline_keyboard: buildKeyboard(buttons, 2),
             resize_keyboard: true
@@ -116,16 +119,16 @@ function commandOnSelectSpec(data, userId, chatId, ctx) {
     })
 }
 
-function commandOnSelectCourse(data, userId, chatId, ctx) {
-    const facultyIndex = data.d.f
-    const spec = data.d.s
-    const course = data.d.c
+async function commandOnSelectCourse(data, userId, chatId) {
+    const facultyIndex = data.d.f;
+    const spec = data.d.s;
+    const course = data.d.c;
 
     const groups = groupsInfo
         .get(facultyIndex)
         .get('info')
         .get(spec)
-        .get(course)
+        .get(course);
     
     const buttons = groups.map(group => {
         return {
@@ -141,9 +144,9 @@ function commandOnSelectCourse(data, userId, chatId, ctx) {
                 }
             })
         }
-    })
+    });
 
-    ctx.bot.sendMessage(chatId, 'Выберите группу', {
+    await bot.sendMessage(chatId, 'Выберите группу', {
         reply_markup: {
             inline_keyboard: buildKeyboard(buttons, 2),
             resize_keyboard: true
@@ -151,64 +154,73 @@ function commandOnSelectCourse(data, userId, chatId, ctx) {
     })
 }
 
-function commandOnSelectGroup(data, userId, chatId, ctx) {
-    const facultyIndex = data.d.f
-    const spec = data.d.s
-    const course = data.d.c
-    const groupId = data.d.g
+async function commandOnSelectGroup(data, userId, chatId) {
+    const facultyIndex = data.d.f;
+    const spec = data.d.s;
+    const course = data.d.c;
+    const groupId = data.d.g;
 
     const [group, ...rest] = groupsInfo
         .get(facultyIndex)
         .get('info')
         .get(spec)
         .get(course)
-        .filter(group => group.id === groupId)
-    
-    ctx.redis.set(userId, groupId)
-    ctx.bot.sendMessage(chatId, `Ваша группа: ${group.name}`)
+        .filter(group => group.id === groupId);
+
+    await userPreferences.replaceOne({
+        telegram_id: userId
+    }, {
+        telegram_id: userId,
+        group_id: groupId
+    }, {
+        upsert: true
+    });
+
+    await bot.sendMessage(chatId, `Ваша группа: ${group.name}`)
 }
 
-module.exports = function (ctx) {
-    const { bot, redis, logger, axios } = ctx
-    axios.get(`${BASE_API}/v2/groups/by_faculty.json`)
+module.exports = () => {
+    const module = {};
+
+    axios.get(`${BASE_API}/v2/groups/by_faculty`)
         .then(res => res.data.forEach((item, ind) => {
-            const { name, index, info } = getFacultyInfo(item, ind)
+            const { name, index, info } = getFacultyInfo(item, ind);
 
             groupsInfo.set(index, new Map([
                 ['info', info],
                 ['name', name]
             ]))
-        }))
+        }));
     
     // a - action
     // d - data (dict)
-    module.processChoosing = (data, userId, chatId) => {
+    module.processChoosing = async (data, userId, chatId) => {
         switch (data.a) {
             case 0: //faculty was selected
-                commandOnSelectFaculty(data, userId, chatId, ctx)
-                break
+                await commandOnSelectFaculty(data, userId, chatId);
+                break;
             case 1: //spec was selected
-                commandOnSelectSpec(data, userId, chatId, ctx)
-                break
+                await commandOnSelectSpec(data, userId, chatId);
+                break;
             case 2: //course was selected
-                commandOnSelectCourse(data, userId, chatId, ctx)
-                break
+                await commandOnSelectCourse(data, userId, chatId);
+                break;
             case 3: //group was selected
-                commandOnSelectGroup(data, userId, chatId, ctx)
+                await commandOnSelectGroup(data, userId, chatId);
                 break
         }
-    }
+    };
 
     module.getFaculties = () => {
-        const faculties = []
-        for ([facultyIndex, facultyInfo] of groupsInfo) {
+        const faculties = [];
+        for (const [facultyIndex, facultyInfo] of groupsInfo) {
             faculties.push({
                 index: facultyIndex,
                 name: facultyInfo.get('name')
             })
         }
         return faculties
-    }
+    };
 
     return module
-}
+};

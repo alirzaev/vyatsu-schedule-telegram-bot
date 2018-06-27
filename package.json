@@ -13,10 +13,5 @@
     "log4js": "^2.5.2",
     "mongoose": "^5.0.3",
     "node-telegram-bot-api": "^0.30.0",
-    "redis": "^2.8.0",
-    "timediff": "^1.1.1"
-  },
-  "devDependencies": {
-    "dotenv": "^5.0.0"
   }
 }
