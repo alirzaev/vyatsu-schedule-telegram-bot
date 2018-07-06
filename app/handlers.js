@@ -1,19 +1,20 @@
-const msgs = require('./messages');
+const msgs = require('./static/messages');
 const bot = require('./configs/bot');
 const {buildKeyboard} = require('./keyboard');
-const dateHelper = require('./helpers/date');
+const dateHelper = require('./utils/date');
 const userPreferences = require('./models/UserPreferences');
-const {getRings, getSchedule} = require('./schedule');
+const {getSchedule} = require('./utils/schedule');
 const groupsChooser = require('./groupsChooser')();
 const {getLogger} = require('./configs/logging');
+const rings = require('./static/rings');
 
 const logger = getLogger('handler');
 
 module.exports = {
     rings: async (msg) => {
         try {
-            const rings = getRings();
-            await bot.sendMessage(msg.chat.id, `Звонки:\n${rings.join("\n")}`)
+            const data = rings.map((v, i) => `${i + 1}) ${v.start}-${v.end}`);
+            await bot.sendMessage(msg.chat.id, `Звонки:\n${data.join("\n")}`)
         } catch (err) {
             logger.error(err);
             await bot.sendMessage(msg.chat.id, msgs.error)
@@ -65,13 +66,12 @@ module.exports = {
         }
         try {
             const groupId = doc.group_id;
-            const rings = getRings();
             const {day, date} = await getSchedule(groupId);
 
             const answer = [];
             rings.forEach((v, i) => {
                 if (day[i]) {
-                    answer.push(`*${v} >* ${day[i]}`)
+                    answer.push(`*${v.start} >* ${day[i]}`)
                 }
             });
 

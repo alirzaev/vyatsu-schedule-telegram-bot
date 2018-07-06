@@ -1,5 +1,5 @@
 const mongo = require('mongoose');
-const {getLogger} = require('./configs/logging');
+const {getLogger} = require('./logging');
 
 const logger = getLogger('database');
 
