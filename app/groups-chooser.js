@@ -178,22 +178,22 @@ async function commandOnSelectGroup(data, userId, chatId, bot) {
     await bot.sendMessage(chatId, `Ваша группа: ${group.name}`);
 }
 
-module.exports = () => {
-    const module = {};
-
-    axios.get(`${BASE_API}/v2/groups/by_faculty`)
-        .then(res => res.data.forEach((item, ind) => {
-            const { name, index, info } = getFacultyInfo(item, ind);
+module.exports = {
+    initialize: async () => {
+        const res = await axios.get(`${BASE_API}/v2/groups/by_faculty`);
+        res.data.forEach((item, ind) => {
+            const {name, index, info} = getFacultyInfo(item, ind);
 
             groupsInfo.set(index, new Map([
                 ['info', info],
                 ['name', name]
             ]));
-        }));
+        });
+    },
     
     // a - action
     // d - data (dict)
-    module.processChoosing = async (data, userId, chatId, bot) => {
+    processChoosing: async (data, userId, chatId, bot) => {
         switch (data.a) {
         case 0: //faculty was selected
             await commandOnSelectFaculty(data, userId, chatId, bot);
@@ -208,9 +208,9 @@ module.exports = () => {
             await commandOnSelectGroup(data, userId, chatId, bot);
             break;
         }
-    };
+    },
 
-    module.getFaculties = () => {
+    getFaculties: () => {
         const faculties = [];
         for (const [facultyIndex, facultyInfo] of groupsInfo) {
             faculties.push({
@@ -219,7 +219,5 @@ module.exports = () => {
             });
         }
         return faculties;
-    };
-
-    return module;
+    }
 };

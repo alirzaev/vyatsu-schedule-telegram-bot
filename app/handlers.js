@@ -3,7 +3,7 @@ const {buildKeyboard} = require('./keyboard');
 const dateHelper = require('./utils/date');
 const userPreferences = require('./models/UserPreferences');
 const {getSchedule} = require('./utils/schedule');
-const groupsChooser = require('./groups-chooser')();
+const groupsChooser = require('./groups-chooser');
 const {getLogger} = require('./configs/logging');
 const ringsData = require('./static/rings');
 
@@ -101,6 +101,10 @@ const callback = async (message, bot) => {
 };
 
 module.exports = {
+    initialize: async () => {
+        await groupsChooser.initialize();
+    },
+
     setMessageHandlers: (botInstance) => {
         // Logging
         botInstance.on('message', (message) => {

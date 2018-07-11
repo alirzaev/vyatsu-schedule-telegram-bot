@@ -17,6 +17,7 @@ const URL = process.env.URL;
     logger.info('Successfully initialized bot');
 
     // Handlers
+    await handlers.initialize();
     await handlers.setMessageHandlers(bot.instance());
     await handlers.setCallbackHandlers(bot.instance());
     logger.info('Successfully set handlers');
