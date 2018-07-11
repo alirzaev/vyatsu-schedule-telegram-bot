@@ -3,7 +3,7 @@ const {buildKeyboard} = require('./keyboard');
 const dateHelper = require('./utils/date');
 const userPreferences = require('./models/UserPreferences');
 const {getSchedule} = require('./utils/schedule');
-const groupsChooser = require('./groupsChooser')();
+const groupsChooser = require('./groups-chooser')();
 const {getLogger} = require('./configs/logging');
 const ringsData = require('./static/rings');
 
