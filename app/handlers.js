@@ -6,6 +6,7 @@ const {getSchedule} = require('./utils/schedule');
 const groupsChooser = require('./groups-chooser');
 const {getLogger} = require('./configs/logging');
 const ringsData = require('./static/rings');
+const { callback_types, callback_actions } = require('./static/constants');
 
 const logger = getLogger('handlers');
 
@@ -23,13 +24,11 @@ const group = async (message, bot) => {
     const buttons = groupsChooser.getFaculties().map(faculty => {
         return {
             text: faculty.name,
-            callback_data: JSON.stringify({
-                t: 0, // choose group
-                a: 0, // select faculty
-                d: {
-                    'f': faculty.index,
-                }
-            })
+            callback_data: JSON.stringify([
+                callback_types.CHOOSE_GROUP,
+                callback_actions.ON_FACULTY_SELECT,
+                faculty.index
+            ])
         };
     });
 
@@ -89,13 +88,13 @@ const schedule = async (message, bot) => {
     }
 };
 
+// message data format: [type, ...data]
 const callback = async (message, bot) => {
     const userId = message['from']['id'];
     const chatId = message['message']['chat']['id'];
 
-    // t - type
-    const data = JSON.parse(message.data);
-    if (data.t == 0) { // choose group
+    const [type, ...data] = JSON.parse(message.data);
+    if (type === callback_types.CHOOSE_GROUP) {
         await groupsChooser.processChoosing(data, userId, chatId, bot);
     }
 };
