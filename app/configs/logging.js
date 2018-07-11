@@ -8,6 +8,6 @@ module.exports = {
     getLogger: (name) => {
         const logger = logging.getLogger(name);
         logger.level = level;
-        return logger
+        return logger;
     }
 };

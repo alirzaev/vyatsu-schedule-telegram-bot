@@ -1,53 +1,30 @@
 const bot = require('./configs/bot');
-const msgs = require('./static/messages');
 const database = require('./configs/database');
 const {getLogger} = require('./configs/logging');
-const {rings, chooseGroup, link, schedule, processCallback} = require('./handlers');
+const handlers = require('./handlers');
 
 const logger = getLogger('server');
+const PORT = process.env.PORT;
+const URL = process.env.URL;
 
-// MongoDB
-database.connect();
+(async () => {
+    // MongoDB
+    await database.connect();
+    logger.info('Successfully connected to MongoDB cluster');
 
-// Logging
-bot.on('message', (msg) => {
-    logger.info(`From: ${msg.from.id}:${msg.from.username}; message: ${msg.text}`)
-});
+    // Bot
+    await bot.initialize();
+    logger.info('Successfully initialized bot');
 
-// Start bot
-bot.onText(/\/start/, async (msg) => {
-    await bot.sendMessage(msg.chat.id, msgs.help, {
-        parse_mode: 'html'
+    // Handlers
+    await handlers.setMessageHandlers(bot.instance());
+    await handlers.setCallbackHandlers(bot.instance());
+    logger.info('Successfully set handlers');
+})()
+    .then(() => {
+        logger.info(`Server started: ${URL}:${PORT}`);
     })
-});
-
-// Help
-bot.onText(/^\/help$/i, async (msg) => {
-    await bot.sendMessage(msg.chat.id, msgs.help, {
-        parse_mode: 'html'
-    })
-});
-
-// Rings schedule
-bot.onText(/^\/rings$/i, async (msg) => {
-    await rings(msg)
-});
-
-// Memorize group
-bot.onText(/^\/group$/i, async (msg) => {
-    await chooseGroup(msg)
-});
-
-// Schedule url
-bot.onText(/^\/link$/i, async (msg) => {
-    await link(msg)
-});
-
-// Schedule
-bot.onText(/^\/schedule$/i, async (msg) => {
-    await schedule(msg)
-});
-
-bot.on('callback_query', async (msg) => {
-    await processCallback(msg)
-});
+    .catch(error => {
+        logger.error('Error occurred during initialization');
+        logger.error(error);
+    });

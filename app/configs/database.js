@@ -1,17 +1,7 @@
-const mongo = require('mongoose');
-const {getLogger} = require('./logging');
-
-const logger = getLogger('database');
+const mongoose = require('mongoose');
 
 module.exports = {
-    connect: () => {
-        mongo.connect(process.env.MONGODB_URI)
-            .then(() => {
-                logger.info('Successfully connected to MongoDB cluster');
-            })
-            .catch(error => {
-                logger.error('Error when connecting to MongoDB cluster');
-                logger.error(error);
-            });
+    connect: async () => {
+        await mongoose.connect(process.env.MONGODB_URI);
     }
 };

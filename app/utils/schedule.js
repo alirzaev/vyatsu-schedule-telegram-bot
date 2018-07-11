@@ -14,7 +14,7 @@ module.exports = {
         const {week, dayOfWeek} = today;
 
         const schedule = weeks[week][dayOfWeek].map(
-            item => item.replace("\r", ' ')
+            item => item.replace('\r', ' ')
                 .replace(/Чтение ?лекций/im, 'Лек.')
                 .replace(/Проведение ?лабораторных ?занятий/im, 'Лаб.')
                 .replace(/Проведение ?практических ?занятий,? ?семинаров/im, 'Пр.')
@@ -25,7 +25,7 @@ module.exports = {
             day: schedule,
             date: date,
             groupId
-        }
+        };
     }
 
 };

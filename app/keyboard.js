@@ -5,12 +5,12 @@ module.exports = {
 
         for (let [index, button] of buttons.entries()) {
             if (index % columnsCount == 0) {
-                keyboard.push([button])
+                keyboard.push([button]);
             } else {
-                keyboard[(index / columnsCount) >> 0].push(button)
+                keyboard[(index / columnsCount) >> 0].push(button);
             }
         }
 
-        return keyboard
+        return keyboard;
     }
 };

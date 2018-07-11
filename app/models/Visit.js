@@ -2,9 +2,9 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const visitSchema = new Schema({
-  telegram_id: String,
-  message: String,
-  date: { type: Date, default: Date.now }
+    telegram_id: String,
+    message: String,
+    date: { type: Date, default: Date.now }
 });
 
 const Visit = mongoose.model('Visit', visitSchema);
