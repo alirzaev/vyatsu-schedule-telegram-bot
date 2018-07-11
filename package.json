@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "main": "server.js",
   "scripts": {
-    "start": "node app/server.js"
+    "start": "node app/server.js",
+    "lint": "eslint . --fix"
   },
   "license": "MIT",
   "author": "Glukhikh Vladimir <gluxix1993@gmail.com>",
