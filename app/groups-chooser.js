@@ -290,7 +290,7 @@ module.exports = {
     },
 
     // callback data format: [action, ...data]
-    processChoosing: async (callbackData, userId, chatId, bot) => {
+    process: async (callbackData, userId, chatId, bot) => {
         const [action, ...data] = callbackData;
         switch (action) {
         case callback_actions.ON_FACULTY_SELECT:

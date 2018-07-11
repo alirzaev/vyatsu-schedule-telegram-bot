@@ -95,7 +95,7 @@ const callback = async (message, bot) => {
 
     const [type, ...data] = JSON.parse(message.data);
     if (type === callback_types.CHOOSE_GROUP) {
-        await groupsChooser.processChoosing(data, userId, chatId, bot);
+        await groupsChooser.process(data, userId, chatId, bot);
     }
 };
 
