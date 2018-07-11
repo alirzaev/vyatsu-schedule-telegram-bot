@@ -52,6 +52,46 @@ class GroupInfo {
     }
 }
 
+class SpecialityInfo {
+    constructor(name, index, courses) {
+        this._name = name;
+        this._index = index;
+        this._courses = courses;
+    }
+
+    get name() {
+        return this._name;
+    }
+
+    get index() {
+        return this._index;
+    }
+
+    get courses() {
+        return this._courses;
+    }
+}
+
+class CourseInfo {
+    constructor(name, index, groups) {
+        this._name = name;
+        this._index = index;
+        this._groups = groups;
+    }
+
+    get name() {
+        return this._name;
+    }
+
+    get index() {
+        return this._index;
+    }
+
+    get groups() {
+        return this._groups;
+    }
+}
+
 function getFacultyShorthand(facultyName) {
     const i = facultyName.indexOf('(');
     if (i !== -1) {
@@ -67,7 +107,7 @@ function getGroupInfo(groupItem) {
 
     const match = groupName.match(/([А-Яа-я]+)-(\d+)-\d+-\d+/);
     const spec = match[1].slice(0, -1);
-    const course = match[2].slice(0, 1);
+    const course = Number.parseInt(match[2].slice(0, 1));
 
     return new GroupInfo(groupId, groupName, spec, course);
 }
@@ -79,26 +119,38 @@ function getFacultyInfo(facultyItem, ind) {
     const groups = facultyItem['groups'];
 
     const specialities = new Map();
+    const specialityIndexes = new Map();
+    let counter = 0;
 
     groups.forEach(group => {
         const groupInfo = getGroupInfo(group);
-        const groupId = groupInfo.id;
-        const groupName = groupInfo.name;
         const speciality = groupInfo.speciality;
         const course = groupInfo.course;
 
-        if (!specialities.has(speciality)) {
-            specialities.set(speciality, new Map());
+        if (!specialityIndexes.has(speciality)) {
+            specialityIndexes.set(speciality, counter);
+            specialities.set(counter, new SpecialityInfo(speciality, counter, new Map()));
+            counter++;
         }
 
-        if (!specialities.get(speciality).has(course)) {
-            specialities.get(speciality).set(course, []);
+        const specialityIndex = specialityIndexes.get(speciality);
+
+        if (!specialities
+            .get(specialityIndex)
+            .courses
+            .has(course)) {
+            specialities
+                .get(specialityIndex)
+                .courses
+                .set(course, new CourseInfo(course.toString(), course, new Map()));
         }
 
-        specialities.get(speciality).get(course).push({
-            id: groupId,
-            name: groupName
-        });
+        specialities
+            .get(specialityIndex)
+            .courses
+            .get(course)
+            .groups
+            .set(groupInfo.id, groupInfo);
     });
 
     return new FacultyInfo(
@@ -114,14 +166,15 @@ async function commandOnSelectFaculty(actionData, userId, chatId, bot) {
     const specialities = groupsInfo.get(facultyIndex).specialities;
 
     const buttons = [];
-    for (let speciality of specialities.keys()) {
+
+    for (let [specialityIndex, info] of specialities.entries()) {
         buttons.push({
-            text: speciality,
+            text: info.name,
             callback_data: JSON.stringify([
                 callback_types.CHOOSE_GROUP,
                 callback_actions.ON_SPECIALITY_SELECT,
                 facultyIndex,
-                speciality
+                specialityIndex
             ])
         });
     }
@@ -134,24 +187,26 @@ async function commandOnSelectFaculty(actionData, userId, chatId, bot) {
     });
 }
 
+// action data format: [facultyIndex, specialityIndex, ...data]
 async function commandOnSelectSpec(actionData, userId, chatId, bot) {
-    const [facultyIndex, speciality] = actionData;
+    const [facultyIndex, specialityIndex] = actionData;
     const courses = groupsInfo
         .get(facultyIndex)
         .specialities
-        .get(speciality);
+        .get(specialityIndex)
+        .courses;
 
     const buttons = [];
 
-    for (let course of courses.keys()) {
+    for (let [courseIndex, info] of courses.entries()) {
         buttons.push({
-            text: course,
+            text: info.name,
             callback_data: JSON.stringify([
                 callback_types.CHOOSE_GROUP,
                 callback_actions.ON_COURSE_SELECT,
                 facultyIndex,
-                speciality,
-                course
+                specialityIndex,
+                courseIndex
             ])
         });
     }
@@ -164,28 +219,33 @@ async function commandOnSelectSpec(actionData, userId, chatId, bot) {
     });
 }
 
+// action data format: [facultyIndex, specialityIndex, courseIndex, ...data]
 async function commandOnSelectCourse(actionData, userId, chatId, bot) {
-    const [facultyIndex, speciality, course] = actionData;
+    const [facultyIndex, specialityIndex, courseIndex] = actionData;
 
     const groups = groupsInfo
         .get(facultyIndex)
         .specialities
-        .get(speciality)
-        .get(course);
+        .get(specialityIndex)
+        .courses
+        .get(courseIndex)
+        .groups;
     
-    const buttons = groups.map(group => {
-        return {
-            text: group.name,
+    const buttons = [];
+
+    for (let [groupId, info] of groups.entries()) {
+        buttons.push({
+            text: info.name,
             callback_data: JSON.stringify([
                 callback_types.CHOOSE_GROUP,
                 callback_actions.ON_GROUP_SELECT,
                 facultyIndex,
-                speciality,
-                course,
-                group.id
+                specialityIndex,
+                courseIndex,
+                groupId
             ])
-        };
-    });
+        });
+    }
 
     await bot.sendMessage(chatId, 'Выберите группу', {
         reply_markup: {
@@ -195,15 +255,18 @@ async function commandOnSelectCourse(actionData, userId, chatId, bot) {
     });
 }
 
+// action data format: [facultyIndex, specialityIndex, courseIndex, groupId, ...data]
 async function commandOnSelectGroup(actionData, userId, chatId, bot) {
-    const [facultyIndex, speciality, course, groupId] = actionData;
+    const [facultyIndex, specialityIndex, courseIndex, groupId] = actionData;
 
-    const [group] = groupsInfo
+    const group = groupsInfo
         .get(facultyIndex)
         .specialities
-        .get(speciality)
-        .get(course)
-        .filter(group => group.id === groupId);
+        .get(specialityIndex)
+        .courses
+        .get(courseIndex)
+        .groups
+        .get(groupId);
 
     await userPreferences.replaceOne({
         telegram_id: userId
