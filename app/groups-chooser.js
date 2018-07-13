@@ -93,10 +93,9 @@ class CourseInfo {
 }
 
 function getFacultyShorthand(facultyName) {
-    const match = facultyName.match(/\(([А-Яа-я]+)\).*/);
-
-    if (match) {
-        return match[1];
+    const i = facultyName.indexOf('(');
+    if (i !== -1) {
+        return facultyName.slice(0, i).trim();
     } else {
         return facultyName;
     }
