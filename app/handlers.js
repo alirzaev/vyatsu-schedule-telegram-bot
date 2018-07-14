@@ -2,7 +2,6 @@ const messages = require('./static/messages');
 const {buildKeyboard} = require('./keyboard');
 const dateHelper = require('./utils/date');
 const userPreferences = require('./models/UserPreferences');
-const {getSchedule} = require('./utils/schedule');
 const groupsChooser = require('./groups-chooser');
 const {getLogger} = require('./configs/logging');
 const ringsData = require('./static/rings');
@@ -68,23 +67,25 @@ const schedule = async (message, bot) => {
     }
     try {
         const groupId = doc.group_id;
-        const {day, date} = await getSchedule(groupId);
 
-        const answer = [];
-        ringsData.forEach((v, i) => {
-            if (day[i]) {
-                answer.push(`*${v.start} >* ${day[i]}`);
-            }
-        });
+        const data = await api.schedule(groupId, season);
+        const {weeks, today} = data;
+        const {week, dayOfWeek, date} = today;
+        const dayName = dateHelper.dayName(dayOfWeek);
 
-        const monthDay = date.getDate();
-        const month = date.getMonth() + 1;
+        const schedule = beautify.schedule(
+            ringsData,
+            beautify.lessons(weeks[week][dayOfWeek])
+        );
+
+        const dayOfMonth = date.slice(0, 2);
+        const month = date.slice(2, 4);
 
         await bot.sendMessage(
             message['chat']['id'],
-            `Расписание (${monthDay}.${month}, ${dateHelper.dayName(date)}):\n${answer.join('\n')}`,
+            `Расписание (${dayOfMonth}.${month}, ${dayName}):\n${schedule.join('\n')}`,
             {
-                parse_mode: 'Markdown'
+                parse_mode: 'markdown'
             }
         );
     } catch (err) {

@@ -1,9 +1,9 @@
-const weekday = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+const weekday = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
 module.exports = {
 
-    dayName: function (date) {
-        return weekday[date.getDay()];
+    dayName: function (dayIndex) {
+        return weekday[dayIndex];
     }
 
 };
