@@ -9,6 +9,7 @@ const buildingsData = require('./static/buildings');
 const { callback_types, callback_actions } = require('./static/constants');
 const beautify = require('./utils/beautify');
 const api = require('./utils/api');
+const Visit = require('./models/Visit');
 
 const logger = getLogger('handlers');
 
@@ -153,11 +154,18 @@ module.exports = {
 
     setMessageHandlers: (botInstance) => {
         // Logging
-        botInstance.on('message', (message) => {
+        botInstance.on('message', async (message) => {
             const userId = message['from']['id'];
             const userName = message['from']['username'];
 
             logger.info(`USER: ${userId}:${userName}; MESSAGE: ${message['text']}`);
+
+            const visit = new Visit({
+                telegram_id: userId,
+                data: message['text'],
+                type: 'MESSAGE'
+            });
+            await visit.save();
         });
 
         // Command /start
@@ -206,6 +214,13 @@ module.exports = {
             const userName = message['from']['username'];
 
             logger.info(`USER: ${userId}:${userName}; CALLBACK_DATA: ${message['data']}`);
+
+            const visit = new Visit({
+                telegram_id: userId,
+                data: message['data'],
+                type: 'CALLBACK_QUERY'
+            });
+            await visit.save();
 
             await callback(message, botInstance);
         });
