@@ -154,8 +154,10 @@ module.exports = {
     setMessageHandlers: (botInstance) => {
         // Logging
         botInstance.on('message', (message) => {
-            logger.info(`From: ${message['from']['id']}:${message['from']['username']}`);
-            logger.info(`Message: ${message['text']}`);
+            const userId = message['from']['id'];
+            const userName = message['from']['username'];
+
+            logger.info(`USER: ${userId}:${userName}; MESSAGE: ${message['text']}`);
         });
 
         // Command /start
@@ -200,8 +202,10 @@ module.exports = {
 
     setCallbackHandlers: (botInstance) => {
         botInstance.on('callback_query', async (message) => {
-            logger.info(`From: ${message['from']['id']}:${message['from']['username']}`);
-            logger.info(`Callback query: ${message['data']}`);
+            const userId = message['from']['id'];
+            const userName = message['from']['username'];
+
+            logger.info(`USER: ${userId}:${userName}; CALLBACK_DATA: ${message['data']}`);
 
             await callback(message, botInstance);
         });
