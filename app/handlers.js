@@ -6,6 +6,7 @@ const {getSchedule} = require('./utils/schedule');
 const groupsChooser = require('./groups-chooser');
 const {getLogger} = require('./configs/logging');
 const ringsData = require('./static/rings');
+const buildingsData = require('./static/buildings');
 const { callback_types, callback_actions } = require('./static/constants');
 
 const logger = getLogger('handlers');
@@ -88,14 +89,46 @@ const schedule = async (message, bot) => {
     }
 };
 
+const where = async (message, bot) => {
+    const buttons = buildingsData.map((building, index) => {
+        return {
+            text: building.number,
+            callback_data: JSON.stringify([
+                callback_types.BUILDING_ADDRESS,
+                index
+            ])
+        };
+    });
+
+    await bot.sendMessage(message['chat']['id'], 'Выберите номер корпуса', {
+        reply_markup: {
+            inline_keyboard: buildKeyboard(buttons, 4)
+        },
+    });
+};
+
+const whereCallback = async (callbackData, userId, chatId, bot) => {
+    const [number] = callbackData;
+
+    const {address, latitude, longitude} = buildingsData[number];
+
+    await bot.sendMessage(chatId, address);
+    await bot.sendLocation(chatId, latitude, longitude);
+};
+
 // message data format: [type, ...data]
 const callback = async (message, bot) => {
     const userId = message['from']['id'];
     const chatId = message['message']['chat']['id'];
 
     const [type, ...data] = JSON.parse(message.data);
-    if (type === callback_types.CHOOSE_GROUP) {
+    switch (type) {
+    case callback_types.CHOOSE_GROUP:
         await groupsChooser.process(data, userId, chatId, bot);
+        break;
+    case callback_types.BUILDING_ADDRESS:
+        await whereCallback(data, userId, chatId, bot);
+        break;
     }
 };
 
@@ -143,6 +176,11 @@ module.exports = {
         // Command /schedule
         botInstance.onText(/^\/schedule$/i, async (message) => {
             await schedule(message, botInstance);
+        });
+
+        // Command /where
+        botInstance.onText(/^\/where$/i, async (message) => {
+            await where(message, botInstance);
         });
     },
 
