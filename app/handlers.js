@@ -71,23 +71,31 @@ const schedule = async (message, bot) => {
         const data = await api.schedule(groupId, season);
         const {weeks, today} = data;
         const {week, dayOfWeek, date} = today;
+
         const dayName = dateHelper.dayName(dayOfWeek);
-
-        const schedule = beautify.schedule(
-            ringsData,
-            beautify.lessons(weeks[week][dayOfWeek])
-        );
-
         const dayOfMonth = date.slice(0, 2);
         const month = date.slice(2, 4);
 
-        await bot.sendMessage(
-            message['chat']['id'],
-            `Расписание (${dayOfMonth}.${month}, ${dayName}):\n${schedule.join('\n')}`,
-            {
-                parse_mode: 'markdown'
-            }
-        );
+        const empty = weeks[week][dayOfWeek].every(lesson => lesson == '');
+        if (empty) {
+            await bot.sendMessage(
+                message['chat']['id'],
+                `Расписание (${dayOfMonth}.${month}, ${dayName}):\nЗанятий нет`
+            );
+        } else {
+            const schedule = beautify.schedule(
+                ringsData,
+                beautify.lessons(weeks[week][dayOfWeek])
+            );
+
+            await bot.sendMessage(
+                message['chat']['id'],
+                `Расписание (${dayOfMonth}.${month}, ${dayName}):\n${schedule.join('\n')}`,
+                {
+                    parse_mode: 'markdown'
+                }
+            );
+        }
     } catch (err) {
         await bot.sendMessage(message['chat']['id'], messages.error);
         logger.error(err);
