@@ -1,5 +1,5 @@
 const messages = require('./static/messages');
-const {buildKeyboard} = require('./keyboard');
+const {buildKeyboard} = require('./utils/keyboard');
 const dateHelper = require('./utils/date');
 const userPreferences = require('./models/UserPreferences');
 const groupsChooser = require('./groups-chooser');

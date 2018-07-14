@@ -1,4 +1,4 @@
-const { buildKeyboard } = require('./keyboard');
+const { buildKeyboard } = require('./utils/keyboard');
 const userPreferences = require('./models/UserPreferences');
 const {callback_actions, callback_types} = require('./static/constants');
 const api = require('./utils/api');
