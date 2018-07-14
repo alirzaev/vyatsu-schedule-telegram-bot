@@ -9,8 +9,11 @@ const ringsData = require('./static/rings');
 const buildingsData = require('./static/buildings');
 const { callback_types, callback_actions } = require('./static/constants');
 const beautify = require('./utils/beautify');
+const api = require('./utils/api');
 
 const logger = getLogger('handlers');
+
+let season = '';
 
 const rings = async (message, bot) => {
     try {
@@ -50,7 +53,7 @@ const link = async (message, bot) => {
         await bot.sendMessage(message['chat']['id'], messages.forgotStudent);
     } else {
         const groupId = preferences.group_id;
-        await bot.sendMessage(message['chat']['id'], `https://vyatsuschedule.ru/#/schedule/${groupId}/${process.env.SEASON}`);
+        await bot.sendMessage(message['chat']['id'], `https://vyatsuschedule.ru/#/schedule/${groupId}/${season}`);
     }
 };
 
@@ -136,6 +139,7 @@ const callback = async (message, bot) => {
 module.exports = {
     initialize: async () => {
         await groupsChooser.initialize();
+        season = await api.season();
     },
 
     setMessageHandlers: (botInstance) => {
