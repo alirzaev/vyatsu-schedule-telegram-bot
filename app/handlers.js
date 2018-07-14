@@ -8,12 +8,13 @@ const {getLogger} = require('./configs/logging');
 const ringsData = require('./static/rings');
 const buildingsData = require('./static/buildings');
 const { callback_types, callback_actions } = require('./static/constants');
+const beautify = require('./utils/beautify');
 
 const logger = getLogger('handlers');
 
 const rings = async (message, bot) => {
     try {
-        const data = ringsData.map((v, i) => `${i + 1}) ${v.start}-${v.end}`);
+        const data = beautify.rings(ringsData);
         await bot.sendMessage(message['chat']['id'], `Звонки:\n${data.join('\n')}`);
     } catch (err) {
         logger.error(err);
