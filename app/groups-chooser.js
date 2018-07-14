@@ -1,9 +1,7 @@
-const axios = require('axios');
 const { buildKeyboard } = require('./keyboard');
 const userPreferences = require('./models/UserPreferences');
 const {callback_actions, callback_types} = require('./static/constants');
-
-const BASE_API = process.env.BASE_API;
+const api = require('./utils/api');
 
 let groupsInfo = new Map();
 
@@ -282,8 +280,8 @@ async function commandOnSelectGroup(actionData, userId, chatId, bot) {
 
 module.exports = {
     initialize: async () => {
-        const res = await axios.get(`${BASE_API}/v2/groups/by_faculty`);
-        res.data.forEach((item, ind) => {
+        const groups = await api.groups();
+        groups.forEach((item, ind) => {
             const info = getFacultyInfo(item, ind);
             groupsInfo.set(info.index, info);
         });
