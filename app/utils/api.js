@@ -5,7 +5,7 @@ const BASE_API = process.env.BASE_API;
 module.exports = {
 
     season: async () => {
-        const resp = axios.get(`${BASE_API}/v2/season/current`);
+        const resp = await axios.get(`${BASE_API}/v2/season/current`);
         const data = resp['data'];
 
         if (data['error']) {
