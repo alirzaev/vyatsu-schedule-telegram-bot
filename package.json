@@ -7,7 +7,7 @@
     "lint": "eslint . --fix"
   },
   "license": "MIT",
-  "author": "Glukhikh Vladimir <gluxix1993@gmail.com>",
+  "author": "Ali Rzaev <alirzaev1996@gmail.com>",
   "dependencies": {
     "axios": "^0.18.0",
     "bluebird": "^3.5.1",
