@@ -15,32 +15,32 @@ const logger = getLogger('handlers');
 let season = '';
 
 const rings = async (message, bot) => {
+    const data = beautify.rings(ringsData);
+    await bot.sendMessage(message['chat']['id'], `Звонки:\n${data.join('\n')}`);
+};
+
+const group = async (message, bot) => {
     try {
-        const data = beautify.rings(ringsData);
-        await bot.sendMessage(message['chat']['id'], `Звонки:\n${data.join('\n')}`);
+        const buttons = groupsChooser.getFaculties().map(faculty => {
+            return {
+                text: faculty.name,
+                callback_data: JSON.stringify([
+                    callback_types.CHOOSE_GROUP,
+                    callback_actions.ON_FACULTY_SELECT,
+                    faculty.index
+                ])
+            };
+        });
+
+        await bot.sendMessage(message['chat']['id'], 'Выберите факультет', {
+            reply_markup: {
+                inline_keyboard: buildKeyboard(buttons, 2)
+            },
+        });
     } catch (err) {
         logger.error(err);
         await bot.sendMessage(message['chat']['id'], messages.error);
     }
-};
-
-const group = async (message, bot) => {
-    const buttons = groupsChooser.getFaculties().map(faculty => {
-        return {
-            text: faculty.name,
-            callback_data: JSON.stringify([
-                callback_types.CHOOSE_GROUP,
-                callback_actions.ON_FACULTY_SELECT,
-                faculty.index
-            ])
-        };
-    });
-
-    await bot.sendMessage(message['chat']['id'], 'Выберите факультет', {
-        reply_markup: {
-            inline_keyboard: buildKeyboard(buttons, 2)
-        },
-    });
 };
 
 const link = async (message, bot) => {
