@@ -20,7 +20,8 @@ module.exports = {
         .replace(/Чтение ?лекций/im, 'Лек.')
         .replace(/Проведение ?лабораторных ?занятий/im, 'Лаб.')
         .replace(/Проведение ?практических ?занятий,? ?семинаров/im, 'Пр.')
-        .replace(/(.+-\d{4}-\d{2}-\d{2}, )/im, '') // remove the group name from the lesson's description
+        .replace(/^([А-Яа-я]+-\d{4}-\d{2}-\d{2}, )/im, '')     // remove the group name from the lesson's description
+        .replace(/\s?([А-Яа-я]+-\d{4}-\d{2}-\d{2}, )/gim, '; ') // first occurrence replace to empty string, others to semicolon
     ),
 
     rings: (rings) => rings.map((rings, index) => `${index + 1}) ${rings.start}-${rings.end}`),
