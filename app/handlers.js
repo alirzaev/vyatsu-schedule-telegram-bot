@@ -22,16 +22,18 @@ const rings = async (message, bot) => {
 
 const group = async (message, bot) => {
     try {
-        const buttons = groupsChooser.getFaculties().map(faculty => {
-            return {
-                text: faculty.name,
-                callback_data: JSON.stringify([
-                    callback_types.CHOOSE_GROUP,
-                    callback_actions.ON_FACULTY_SELECT,
-                    faculty.index
-                ])
-            };
-        });
+        const buttons = groupsChooser.getFaculties()
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map(faculty => {
+                return {
+                    text: faculty.name,
+                    callback_data: JSON.stringify([
+                        callback_types.CHOOSE_GROUP,
+                        callback_actions.ON_FACULTY_SELECT,
+                        faculty.index
+                    ])
+                };
+            });
 
         await bot.sendMessage(message['chat']['id'], 'Выберите факультет', {
             reply_markup: {
