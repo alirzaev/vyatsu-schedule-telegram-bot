@@ -26,6 +26,8 @@ module.exports = {
 
     rings: (rings) => rings.map((rings, index) => `${index + 1}) ${rings.start}-${rings.end}`),
 
-    schedule: (rings, lessons) => zip(rings, lessons).map(v => `*${v[0].start} >* ${v[1]}`)
+    schedule: (rings, lessons) => zip(rings, lessons)
+        .filter(v => v[1] !== '') // skip items without lessons
+        .map(v => `*${v[0].start} >* ${v[1]}`)
 
 };
