@@ -1,7 +1,5 @@
 # VyatSU schedule Telegram bot
 
-## Description
-
 This app provides students that use Telegram a convenient way to view group schedules.
 
 What can this bot do:
@@ -16,7 +14,7 @@ What can this bot do:
 
 - Convenient way to choose group
 
-The link for starting converstion with bot can be found on [vyatsuschedule.ru](https://vyatsuschedule.ru)
+The link for starting conversation with bot can be found here: [vyatsuschedule.github.io](https://vyatsuschedule.github.io)
 
 ## Running app
 
@@ -36,15 +34,17 @@ The link for starting converstion with bot can be found on [vyatsuschedule.ru](h
 
 ### Required environment variables
 
-`MONGODB_URI` - defines the URI for MongoDB cluster.
+`MONGODB_URI=<uri>` - URI to MongoDB database of format `mongodb://<user>:<password>@<host>:<port>/<database>`. You have to specify the database name.
 
 `PORT` - port on which listen requests.
 
-`TG_BOT_TOKEN` - token for Telegram bot.
+`TOKEN` - token for Telegram bot.
 
-`URL` - URL to which Telegram will send requests.
+`WEBHOOK_URL` - Webhook for Telegram bot.
 
-`BASE_API` - URL of VyatSU schedule API server.
+`API_URL` - URL to VyatSU schedule API server.
+
+`WEBAPP_URL` - URL to VyatSU schedule web application.
 
 ### Server
 
