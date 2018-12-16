@@ -13,6 +13,8 @@ const Visit = require('./models/Visit');
 
 const logger = getLogger('handlers');
 
+const WEBAPP_URL = process.env.WEBAPP_URL;
+
 let season = '';
 
 const rings = async (message, bot) => {
@@ -55,7 +57,7 @@ const link = async (message, bot) => {
         await bot.sendMessage(message['chat']['id'], messages.forgotStudent);
     } else {
         const groupId = preferences.group_id;
-        await bot.sendMessage(message['chat']['id'], `https://vyatsuschedule.ru/#/schedule/${groupId}/${season}`);
+        await bot.sendMessage(message['chat']['id'], `${WEBAPP_URL}/#/schedule/${groupId}/${season}`);
     }
 };
 
