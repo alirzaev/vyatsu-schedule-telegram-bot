@@ -10,7 +10,7 @@ const URL = process.env.URL;
 (async () => {
     // MongoDB
     await database.connect();
-    logger.info('Successfully connected to MongoDB cluster');
+    logger.info('Successfully connected to database');
 
     // Bot
     await bot.initialize();
