@@ -17,9 +17,9 @@ module.exports = {
 
     lessons: (lessons) => lessons.map(lesson => lesson
         .replace('\r', ' ')
-        .replace(/Чтение ?лекций/im, 'Лек.')
-        .replace(/Проведение ?лабораторных ?занятий/im, 'Лаб.')
-        .replace(/Проведение ?практических ?занятий,? ?семинаров/im, 'Пр.')
+        .replace(/Лекция/im, 'Лек.')
+        .replace(/Лабораторная работа/im, 'Лаб.')
+        .replace(/Практическое занятие/im, 'Пр.')
         .replace(/^([А-Яа-я]+-\d{4}-\d{2}-\d{2}, )/im, '')     // remove the group name from the lesson's description
         .replace(/\s?([А-Яа-я]+-\d{4}-\d{2}-\d{2}, )/gim, '; ') // first occurrence replace to empty string, others to semicolon
     ),
