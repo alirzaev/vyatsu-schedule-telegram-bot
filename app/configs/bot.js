@@ -6,7 +6,7 @@ const WEBHOOK_URL = process.env.WEBHOOK_URL;
 
 const bot = new TelegramBot(TOKEN, {
     webHook: {
-        port: PORT || 8080
+        port: PORT || 80
     }
 });
 

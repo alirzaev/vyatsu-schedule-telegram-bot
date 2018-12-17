@@ -38,7 +38,7 @@ Designed for [Vyatka State University](https://www.vyatsu.ru)
 
 `MONGODB_URI=<uri>` - URI to MongoDB database of format `mongodb://<user>:<password>@<host>:<port>/<database>`. You have to specify the database name.
 
-`PORT` - port on which listen requests.
+`PORT` - port on which listen requests, default `80`.
 
 `TOKEN` - token for Telegram bot.
 
