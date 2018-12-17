@@ -1,18 +1,18 @@
 const TelegramBot = require('node-telegram-bot-api');
 
-const TOKEN = process.env.TG_BOT_TOKEN;
+const TOKEN = process.env.TOKEN;
 const PORT = process.env.PORT;
-const URL = process.env.URL;
+const WEBHOOK_URL = process.env.WEBHOOK_URL;
 
 const bot = new TelegramBot(TOKEN, {
     webHook: {
-        port: PORT || 8080
+        port: PORT || 80
     }
 });
 
 module.exports = {
     initialize: async () => {
-        await bot.setWebHook(`${URL}${TOKEN}`);
+        await bot.setWebHook(`${WEBHOOK_URL}${TOKEN}`);
     },
 
     instance: () => {
