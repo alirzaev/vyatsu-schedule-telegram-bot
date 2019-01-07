@@ -49,7 +49,7 @@ const group = async (message, bot) => {
 };
 
 const link = async (message, bot) => {
-    const preferences = await await userPreferences.findOne({
+    const preferences = await userPreferences.findOne({
         telegram_id: message.from.id
     });
 
