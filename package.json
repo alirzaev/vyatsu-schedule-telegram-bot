@@ -1,13 +1,16 @@
 {
   "name": "tg-bot",
-  "version": "1.0.1",
+  "version": "1.0.4",
   "main": "server.js",
   "scripts": {
     "start": "node app/server.js",
     "lint": "eslint . --fix"
   },
   "license": "MIT",
-  "author": "Ali Rzaev <alirzaev1996@gmail.com>",
+  "author": "Vladimir Glukhikh <gluxix1993@gmail.com>",
+  "contributors": [
+    "Ali Rzaev <alirzaev1996@gmail.com>"
+  ],
   "dependencies": {
     "axios": "^0.18.0",
     "bluebird": "^3.5.1",

@@ -1,54 +1,76 @@
-# VyatSU schedule Telegram bot
+# Telegram-бот для VyatSU schedule
 
-This application provides students that use Telegram a convenient way to view group schedules.
+Telegram-бот для просмотра расписания занятий студентов [Вятского государственного университета](https://www.vyatsu.ru).
 
-What can this bot do:
+Что может этот бот:
 
-- Schedule for today.
+- Показать расписание на сегодняшний день.
 
-- URL link to full schedule.
+- Выдать ссылку на полное расписание.
 
-- Rings schedule.
+- Показать расписание звонков.
 
-- VyatSU buildings addresses.
+- Выбрать в 4 клика нужную группу.
 
-- Convenient way to choose group.
+- Показать адреса учебных корпусов.
 
-The link for starting conversation with bot can be found here: [vyatsuschedule.github.io](https://vyatsuschedule.github.io)
+## Для пользователей
 
-Designed for [Vyatka State University](https://www.vyatsu.ru)
+Тык: [vyatsuschedule.github.io](https://vyatsuschedule.github.io/#/bots)
 
-## Running app
+## Для разработчиков
 
-### Telegram bot commands
+Параметры приложения задаются через переменные окружения.
 
-- `/start` - Show help.
+### Список команд, на которые отвечает бот
 
-- `/help` - Show help too.
+  - `/start`, `/help` - показать справку.
 
-- `/schedule` - Show schedule for today.
+  - `/schedule` - показать расписание на сегодняшний день.
 
-- `/link` - Show URL link to full schedule.
+  - `/link` - выдать ссылку на полное расписание.
 
-- `/group` - Perform group choosing.
+  - `/group` - запустить процедуру выбора группы.
 
-- `/where` - Perform building choosing for viewing address.
+  - `/where` - выдать пользователю список учебных корпусов для просмотра их адресов.
 
-### Required environment variables
+### Необходимые переменные окружения
 
-`MONGODB_URI=<uri>` - URI to MongoDB database of format `mongodb://<user>:<password>@<host>:<port>/<database>`. You have to specify the database name.
+`MONGODB_URI` - URI базы данных MongoDB в формате `mongodb://<user>:<password>@<host>:<port>/<database>`. 
+Поле `<database>` обязательно.
 
-`PORT` - port on which listen requests, default `80`.
+`PORT` - порт, который приложение будет слушать, по умолчанию `80`.
 
-`TOKEN` - token for Telegram bot.
+`TOKEN` - токен для Telegram-бота.
 
-`WEBHOOK_URL` - Webhook for Telegram bot.
+`WEBHOOK_URL` - webhook для Telegram-бота.
 
-`API_URL` - URL to VyatSU schedule API server.
+`API_URL` - URL [backend-сервера](https://gitlab.com/vyatsu-schedule/backend).
 
-`WEBAPP_URL` - URL to VyatSU schedule web application.
+`WEBAPP_URL` - URL [веб-приложения](https://gitlab.com/vyatsu-schedule/frontend).
 
-### Server
+### Запуск
 
-`npm start`
+```
+npm start
+```
 
+### Docker
+
+1. Собираем образ
+
+   ```
+   docker build -t imagename .
+   ```
+
+2. Запускаем
+   
+   ```
+   docker run --name somename -d -p 8080:80 \
+     -e MONGODB_URI=<URI> \
+     -e TOKEN=<TOKEN> \
+     -e WEBHOOK_URL=<WEBHOOK_URL> \
+     -e API_URL=<API_URL> \
+     -e WEBAPP_URL=<WEBAPP_URL> \
+     imagename
+   ```

@@ -5,7 +5,7 @@ const API_URL = process.env.API_URL;
 module.exports = {
 
     season: async () => {
-        const resp = await axios.get(`${API_URL}/v2/season/current`);
+        const resp = await axios.get(`${API_URL}/api/v2/season/current`);
         const data = resp['data'];
 
         if (data['error']) {
@@ -16,7 +16,7 @@ module.exports = {
     },
 
     schedule: async (groupId, season) => {
-        const resp = await axios.get(`${API_URL}/v2/schedule/${groupId}/${season}`);
+        const resp = await axios.get(`${API_URL}/api/v2/schedule/${groupId}/${season}`);
         const data = resp['data'];
 
         if (data['error']) {
@@ -27,7 +27,7 @@ module.exports = {
     },
 
     groups: async () => {
-        const resp = await axios.get(`${API_URL}/v2/groups/by_faculty`);
+        const resp = await axios.get(`${API_URL}/api/v2/groups/by_faculty`);
 
         const data = resp['data'];
 
