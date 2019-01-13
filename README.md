@@ -43,7 +43,7 @@ Telegram-бот для просмотра расписания занятий с
 
 `TOKEN` - токен для Telegram-бота.
 
-`WEBHOOK_URL` - webhook для Telegram-бота.
+`WEBHOOK_URL` - webhook для Telegram-бота. Если не указан, то бот будет работать в режиме `polling`.
 
 `API_URL` - URL [backend-сервера](https://gitlab.com/vyatsu-schedule/backend).
 
