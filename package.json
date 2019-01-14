@@ -1,5 +1,5 @@
 {
-  "name": "tg-bot",
+  "name": "telegram-bot",
   "version": "1.0.4",
   "main": "server.js",
   "scripts": {
