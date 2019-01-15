@@ -14,10 +14,6 @@ Telegram-бот для просмотра расписания занятий с
 
 - Показать адреса учебных корпусов.
 
-## Для пользователей
-
-Тык: [vyatsuschedule.github.io](https://vyatsuschedule.github.io/#/bots)
-
 ## Для разработчиков
 
 Параметры приложения задаются через переменные окружения.
@@ -43,7 +39,7 @@ Telegram-бот для просмотра расписания занятий с
 
 `TOKEN` - токен для Telegram-бота.
 
-`WEBHOOK_URL` - webhook для Telegram-бота.
+`WEBHOOK_URL` - webhook для Telegram-бота. Если не указан, то бот будет работать в режиме `polling`.
 
 `API_URL` - URL [backend-сервера](https://gitlab.com/vyatsu-schedule/backend).
 

@@ -1,6 +1,6 @@
 {
-  "name": "tg-bot",
-  "version": "1.0.4",
+  "name": "telegram-bot",
+  "version": "1.0.5",
   "main": "server.js",
   "scripts": {
     "start": "node app/server.js",
