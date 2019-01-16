@@ -41,9 +41,9 @@ Telegram-бот для просмотра расписания занятий с
 
 `WEBHOOK_URL` - webhook для Telegram-бота. Если не указан, то бот будет работать в режиме `polling`.
 
-`API_URL` - URL [backend-сервера](https://gitlab.com/vyatsu-schedule/backend).
+`API_URL` - URL [backend-сервера](https://github.com/alirzaev/vyatsu-schedule-backend).
 
-`WEBAPP_URL` - URL [веб-приложения](https://gitlab.com/vyatsu-schedule/frontend).
+`WEBAPP_URL` - URL [веб-приложения](https://github.com/alirzaev/vyatsu-schedule).
 
 ### Запуск
 
