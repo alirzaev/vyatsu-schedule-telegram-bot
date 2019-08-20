@@ -12,7 +12,7 @@
     "Ali Rzaev <alirzaev1996@gmail.com>"
   ],
   "dependencies": {
-    "axios": "^0.18.0",
+    "axios": "^0.18.1",
     "bluebird": "^3.5.1",
     "immutable": "^4.0.0-rc.12",
     "log4js": "^4.1.1",
