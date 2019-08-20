@@ -48,7 +48,7 @@ Telegram-бот для просмотра расписания занятий с
 ### Запуск
 
 ```
-npm start
+yarn start
 ```
 
 ### Docker
