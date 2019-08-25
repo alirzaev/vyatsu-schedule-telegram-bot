@@ -10,4 +10,4 @@ COPY . .
 
 ENV NODE_ENV production
 
-CMD ["sh", "./start.sh"]
+CMD ["sh", "./docker-cmd.sh"]
