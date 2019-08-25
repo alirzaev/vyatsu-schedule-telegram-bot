@@ -1,7 +1,6 @@
 {
   "name": "telegram-bot",
   "version": "1.0.7",
-  "main": "index.js",
   "scripts": {
     "start": "node src/index.js",
     "lint": "eslint . --fix"
@@ -13,7 +12,6 @@
   ],
   "dependencies": {
     "axios": "^0.18.1",
-    "bluebird": "^3.5.1",
     "immutable": "^4.0.0-rc.12",
     "log4js": "^4.1.1",
     "mongoose": "^5.5.6",
