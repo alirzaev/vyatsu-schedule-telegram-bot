@@ -1,2 +1,3 @@
 #!/usr/bin/env sh
-PORT=80 node src/index.js
+export PORT=80 # override variable according to the EXPOSE instruction
+yarn start
