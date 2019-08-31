@@ -4,10 +4,10 @@ EXPOSE 80
 WORKDIR /usr/src/project
 
 COPY package.json ./
-RUN npm install
+RUN yarn install
 
 COPY . .
 
 ENV NODE_ENV production
 
-CMD ["sh", "./start.sh"]
+CMD ["sh", "./docker-cmd.sh"]

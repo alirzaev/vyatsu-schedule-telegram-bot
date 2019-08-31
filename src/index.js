@@ -3,9 +3,7 @@ const database = require('./configs/database');
 const {getLogger} = require('./configs/logging');
 const handlers = require('./handlers');
 
-const logger = getLogger('server');
-const PORT = process.env.PORT || 80;
-const URL = process.env.URL;
+const logger = getLogger('index');
 
 (async () => {
     // MongoDB
@@ -21,9 +19,15 @@ const URL = process.env.URL;
     await handlers.setMessageHandlers(bot.instance());
     await handlers.setCallbackHandlers(bot.instance());
     logger.info('Successfully set handlers');
+
+    await bot.start();
 })()
     .then(() => {
-        logger.info(`Server started: ${URL}:${PORT}`);
+        if (bot.instance().isPolling()) {
+            logger.info('Bot started in polling mode');
+        } else {
+            logger.info('Bot started in webhook mode');
+        }
     })
     .catch(error => {
         logger.error('Error occurred during initialization');
