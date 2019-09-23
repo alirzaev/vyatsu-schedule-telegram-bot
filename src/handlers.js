@@ -6,7 +6,7 @@ const groupsChooser = require('./groups-chooser');
 const {getLogger} = require('./configs/logging');
 const ringsData = require('./static/rings');
 const buildingsData = require('./static/buildings');
-const { callback_types, callback_actions } = require('./static/constants');
+const {callback_types, callback_actions} = require('./static/constants');
 const beautify = require('./utils/beautify');
 const api = require('./utils/api');
 const Visit = require('./models/Visit');
@@ -61,7 +61,7 @@ const link = async (message, bot) => {
     }
 };
 
-const schedule = async (message, bot) => {
+const schedule = async (message, bot, offset = 0) => {
     const doc = await userPreferences.findOne({
         telegram_id: message.from.id
     });
@@ -70,37 +70,36 @@ const schedule = async (message, bot) => {
         await bot.sendMessage(message['chat']['id'], messages.forgotStudent);
         return;
     }
+
     try {
         const groupId = doc.group_id;
 
         const data = await api.schedule(groupId, season);
         const {weeks, today} = data;
-        const {week, dayOfWeek, date} = today;
+        const {week, dayOfWeek, date} = dateHelper.advance(today, offset);
 
         const dayName = dateHelper.dayName(dayOfWeek);
         const dayOfMonth = date.slice(0, 2);
         const month = date.slice(2, 4);
 
         const empty = weeks[week][dayOfWeek].every(lesson => lesson == '');
-        if (empty) {
-            await bot.sendMessage(
-                message['chat']['id'],
-                `Расписание (${dayOfMonth}.${month}, ${dayName}):\nЗанятий нет`
-            );
-        } else {
-            const schedule = beautify.schedule(
-                ringsData,
-                beautify.lessons(weeks[week][dayOfWeek])
-            );
+        const text = `Расписание (${dayOfMonth}.${month}, ${dayName}):\n` + (
+            empty ?
+                'Занятий нет' :
+                beautify
+                    .schedule(ringsData, beautify.lessons(weeks[week][dayOfWeek]))
+                    .join('\n')
+        );
 
-            await bot.sendMessage(
-                message['chat']['id'],
-                `Расписание (${dayOfMonth}.${month}, ${dayName}):\n${schedule.join('\n')}`,
-                {
-                    parse_mode: 'markdown'
-                }
-            );
-        }
+        await bot.sendMessage(message['chat']['id'], text, {
+            parse_mode: 'markdown',
+            reply_markup: {
+                inline_keyboard: buildKeyboard([{
+                    text: 'На завтра',
+                    callback_data: JSON.stringify([callback_types.NEXT_DAY_SCHEDULE])
+                }], 1)
+            }
+        });
     } catch (err) {
         await bot.sendMessage(message['chat']['id'], messages.error);
         logger.error(err);
@@ -134,6 +133,19 @@ const whereCallback = async (callbackData, userId, chatId, bot) => {
     await bot.sendLocation(chatId, latitude, longitude);
 };
 
+const nextDayScheduleCallback = async (callbackData, userId, chatId, bot) => {
+    const message = {
+        chat: {
+            id: chatId
+        },
+        from: {
+            id: userId
+        }
+    };
+
+    await schedule(message, bot, 1);
+};
+
 // message data format: [type, ...data]
 const callback = async (message, bot) => {
     const userId = message['from']['id'];
@@ -143,6 +155,9 @@ const callback = async (message, bot) => {
     switch (type) {
     case callback_types.CHOOSE_GROUP:
         await groupsChooser.process(data, userId, chatId, bot);
+        break;
+    case callback_types.NEXT_DAY_SCHEDULE:
+        await nextDayScheduleCallback(data, userId, chatId, bot);
         break;
     case callback_types.BUILDING_ADDRESS:
         await whereCallback(data, userId, chatId, bot);
